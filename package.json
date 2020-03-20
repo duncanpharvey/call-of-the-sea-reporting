@@ -1,0 +1,25 @@
+{
+  "name": "call-of-the-sea",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duncanpharvey/call-of-the-sea.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/duncanpharvey/call-of-the-sea/issues"
+  },
+  "homepage": "https://github.com/duncanpharvey/call-of-the-sea#readme",
+  "dependencies": {
+    "airtable": "^0.8.1",
+    "express": "^4.17.1",
+    "googleapis": "^48.0.0"
+  }
+}

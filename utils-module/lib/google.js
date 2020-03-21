@@ -22,22 +22,13 @@ async function updateGoogleSheets(data) {
   requests.push({
     updateSheetProperties: {
       properties: {
+        sheetId: process.env.google_sheet_id,
         gridProperties: {
+          frozenColumnCount: 1,
           frozenRowCount: 1
         }
       },
-      fields: 'gridProperties.frozenRowCount'
-    }
-  });
-
-  requests.push({
-    updateSheetProperties: {
-      properties: {
-        gridProperties: {
-          frozenColumnCount: 1
-        }
-      },
-      fields: 'gridProperties.frozenColumnCount'
+      fields: 'gridProperties(frozenRowCount, frozenColumnCount)'
     }
   });
   

@@ -2,7 +2,7 @@ const Airtable = require('airtable');
 
 var base = new Airtable({apiKey: process.env.airtable_api_key}).base(process.env.airtable_base_id);
 
-async function getAirtableRecords(fields) {
+async function getReportingRecords(fields) {
 
     var sails = await base('Reporting').select({
       fields: fields,
@@ -29,4 +29,4 @@ async function getAirtableRecords(fields) {
     return {sails: sails, idMap: idMap}
   }
 
-  exports.getAirtableRecords = getAirtableRecords;
+  exports.getReportingRecords = getReportingRecords;

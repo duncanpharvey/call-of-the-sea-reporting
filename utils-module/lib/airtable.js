@@ -1,4 +1,5 @@
 const Airtable = require('airtable');
+const slack = require('./slack');
 
 var base = new Airtable({apiKey: process.env.airtable_api_key}).base(process.env.airtable_base_id);
 
@@ -9,35 +10,34 @@ Set.prototype.difference = function(otherSet) {
     if(!otherSet.has(elem)) 
       differenceSet.add(elem); 
   }
-  return differenceSet; 
+  return differenceSet;
 }
 
 async function getReportingRecords(fields) {
+  var sails = await base('Reporting').select({
+    fields: fields,
+    filterByFormula: "OR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
+    sort: [{field: "ID", direction: "asc"}]
+  }).all();
 
-    var sails = await base('Reporting').select({
-      fields: fields,
-      filterByFormula: "OR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
-      sort: [{field: "ID", direction: "asc"}]
-    }).all();
+  var idMap = {};
+
+  var boats = await base('By Boat Sails').select({
+    fields: ['Sail_Id']
+  }).all();
+  boats.forEach((boat) => {
+    idMap[boat.id] = boat.get('Sail_Id');
+  });
+
+  var participants = await base('By Individual Sails').select({
+    fields: ['Participant_Id']
+  }).all();
+  participants.forEach((participant) => {
+    idMap[participant.id] = participant.get('Participant_Id');
+  });
   
-    var idMap = {};
-  
-    var boats = await base('By Boat Sails').select({
-      fields: ['Sail_Id']
-    }).all();
-    boats.forEach((boat) => {
-      idMap[boat.id] = boat.get('Sail_Id');
-    });
-  
-    var participants = await base('By Individual Sails').select({
-      fields: ['Participant_Id']
-    }).all();
-    participants.forEach((participant) => {
-      idMap[participant.id] = participant.get('Participant_Id');
-    });
-    
-    return {sails: sails, idMap: idMap};
-  }
+  return {sails: sails, idMap: idMap};
+}
 
   async function boatSailsLinked() {
     var reportingSet = new Set();
@@ -48,11 +48,11 @@ async function getReportingRecords(fields) {
       records.forEach((record) => {
         byBoatSails = record.get('ByBoatSails');
         if (byBoatSails.length > 1) {
-          console.log('multiple by boat sails in one reporting record: ' + record.get('ID'));
+          slack.post('multiple by boat sails in one reporting record: ' + record.get('ID'));
         }
         byBoatSails.forEach((sailId)=> {
           if (reportingSet.has(sailId)) {
-            console.log('duplicate by boat sail: ' + sailId);
+            slack.post('duplicate by boat sail: ' + sailId);
           }
           reportingSet.add(sailId);
         })
@@ -73,13 +73,15 @@ async function getReportingRecords(fields) {
     var notInReporting = boatsSet.difference(reportingSet);
 
     if (notInBoat.size > 0) {
-      console.log('in reporting, not in boat ');
-      console.log(notInBoat);
+      var string = '';
+      notInBoat.forEach(value => string += value + ' ')
+      slack.post('in reporting, not in boat: ' + string);
     }
 
     if (notInReporting.size > 0) {
-      console.log('in boat, not in reporting ');
-      console.log(notInReporting);
+      var string = '';
+      notInReporting.forEach(value => string += value + ' ')
+      slack.post('in boat, not in reporting: ' + string);
     }
   }
 
@@ -93,7 +95,7 @@ async function getReportingRecords(fields) {
         byIndividualSails = record.get('ByIndividualSails');
         byIndividualSails.forEach((sailId)=> {
           if (reportingSet.has(sailId)) {
-            console.log('duplicate by individual sail: ' + sailId);
+            slack.post('duplicate by individual sail: ' + sailId);
           }
           reportingSet.add(sailId);
         })
@@ -114,13 +116,15 @@ async function getReportingRecords(fields) {
     var notInReporting = individualSet.difference(reportingSet);
 
     if (notInIndividual.size > 0) {
-      console.log('in reporting, not in individual ');
-      console.log(notInIndividual);
+      var string = '';
+      notInIndividual.forEach(value => string += value + ' ')
+      slack.post('in reporting, not in individual: ' + string);
     }
 
     if (notInReporting.size > 0) {
-      console.log('in individual, not in reporting ');
-      console.log(notInReporting);
+      var string = '';
+      notInReporting.forEach(value => string += value + ' ')
+      slack.post('in individual, not in reporting: ' + string);
     }
   }
 

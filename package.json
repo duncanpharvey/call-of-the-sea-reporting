@@ -20,6 +20,7 @@
   "dependencies": {
     "airtable": "^0.8.1",
     "express": "^4.17.1",
-    "googleapis": "^48.0.0"
+    "googleapis": "^48.0.0",
+    "slack-node": "^0.1.8"
   }
 }

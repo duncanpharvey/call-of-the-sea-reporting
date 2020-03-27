@@ -1,6 +1,6 @@
-const utils = require('./utils-module');
+const utils = require('../utils-module');
 
-async function airtableToGoogleSheets() {
+async function main() {
     console.log('start', Date(Date.now()).toString());
 
     var fields = process.env.fields.split(', ');
@@ -13,4 +13,4 @@ async function airtableToGoogleSheets() {
     console.log('finish', Date(Date.now()).toString());
 }
 
-exports.airtableToGoogleSheets = airtableToGoogleSheets;
+exports.main = main;

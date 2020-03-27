@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-const tasks = require('../tasks.js');
+const tasks = require('../tasks');
 
 console.log('running!');
 
-tasks.airtableToGoogleSheets();
+tasks.airtableToGoogleSheets.main();

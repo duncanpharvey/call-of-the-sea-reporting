@@ -1,11 +1,11 @@
-const utils = require('../utils-module');
+const utils = require('../../utils-module');
 
 async function main() {
-    console.log('start', Date(Date.now()).toString());
+    console.log('starting to update google sheets');
 
     var fields = process.env.fields.split(', ');
 
-    console.log('getting records from Airtable');
+    console.log('getting records from airtable');
     result = await utils.Airtable.getReportingRecords(fields);
 
     console.log('mapping records to add to google sheets');
@@ -13,7 +13,7 @@ async function main() {
 
     console.log('adding records to google sheets');
     await utils.Google.updateGoogleSheets(sails);
-    console.log('finish', Date(Date.now()).toString());
+    console.log('finished updating google sheets');
 }
 
 exports.main = main;

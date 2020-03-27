@@ -5,12 +5,12 @@ function mapRecords(records, idMap, fields) {
   
       byBoatSails = sail['ByBoatSails'];
       if (!(byBoatSails === undefined)) {
-        sail['ByBoatSails'] = byBoatSails.map(s => { return idMap[s] });
+        sail['ByBoatSails'] = byBoatSails.map(s => { return idMap[s]; });
       }
   
       byIndividualSails = sail['ByIndividualSails'];
       if (!(byIndividualSails === undefined)) {
-        sail['ByIndividualSails'] = byIndividualSails.map(s => { return idMap[s] });
+        sail['ByIndividualSails'] = byIndividualSails.map(s => { return idMap[s]; });
       }
   
       arr = [];

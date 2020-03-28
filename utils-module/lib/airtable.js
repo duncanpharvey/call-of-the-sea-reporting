@@ -1,17 +1,8 @@
 const Airtable = require('airtable');
 const slack = require('./slack');
+require('./helper').difference(Set);
 
 var base = new Airtable({apiKey: process.env.airtable_api_key}).base(process.env.airtable_base_id);
-
-Set.prototype.difference = function(otherSet) { 
-  var differenceSet = new Set();
-  for(var elem of this) 
-  { 
-    if(!otherSet.has(elem)) 
-      differenceSet.add(elem); 
-  }
-  return differenceSet;
-}
 
 async function getReportingRecords(fields) {
   var sails = await base('Reporting').select({

@@ -7,13 +7,13 @@ function post(message) {
   slack.webhook({
     channel: process.env.slack_channel,
     text: message,
-  }, function(err, response) {
-      if (err) {
-          console.log('failed to post message to slack: ' + err);
-      }
-      else {
-        console.log('posted message to slack: ' + message);
-      }
+  }, function (err, response) {
+    if (err) {
+      console.log('failed to post message to slack: ' + err);
+    }
+    else {
+      console.log('posted message to slack: ' + message);
+    }
   });
 }
 

@@ -8,14 +8,14 @@ async function main() {
     try {
         await tasks.validateReportingData.main();
     }
-    catch(err) {
+    catch (err) {
         slack.post('data validation failed: ' + err);
     }
 
     try {
         await tasks.airtableToGoogleSheets.main();
     }
-    catch(err) {
+    catch (err) {
         slack.post('google sheets update failed: ' + err)
     }
 

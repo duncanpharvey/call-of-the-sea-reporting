@@ -1,4 +1,4 @@
-const {google} = require('googleapis');
+const { google } = require('googleapis');
 
 const jwtClient = new google.auth.JWT(
   process.env.google_client_email,
@@ -31,9 +31,9 @@ async function updateGoogleSheets(data) {
       fields: 'gridProperties(frozenRowCount, frozenColumnCount)'
     }
   });
-  
+
   await sheets.spreadsheets.batchUpdate({
-    resource: {requests}
+    resource: { requests }
   });
 
   await sheets.spreadsheets.values.clear({
@@ -42,7 +42,7 @@ async function updateGoogleSheets(data) {
 
   await sheets.spreadsheets.values.update({
     valueInputOption: 'USER_ENTERED',
-    resource: {values: data}, 
+    resource: { values: data },
     range: process.env.google_sheet_name
   });
 };

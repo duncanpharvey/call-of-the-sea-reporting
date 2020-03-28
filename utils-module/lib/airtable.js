@@ -30,6 +30,21 @@ async function getReportingRecords(fields) {
   return { sails: sails, idMap: idMap };
 }
 
+async function deleteUnlinkedReportingRecords() {
+  await base('Reporting').select({
+    fields: ['ID'],
+    filterByFormula: "AND({ByBoatSails} = '', {ByIndividualSails} = '')",
+    pageSize: 10
+  }).eachPage(async function page(records, fetchNextPage) {
+    if (records.length > 0) {
+      var recordIds = records.map(record => { return record.id; });
+      await base('Reporting').destroy(recordIds);
+      slack.post('deleted unlinked reporting records: ' + recordIds.join(', '));
+    }
+    fetchNextPage();
+  });
+}
+
 async function boatSailsLinked() {
   var reportingSet = new Set();
   await base('Reporting').select({
@@ -122,3 +137,4 @@ async function individualSailsLinked() {
 exports.getReportingRecords = getReportingRecords;
 exports.boatSailsLinked = boatSailsLinked;
 exports.individualSailsLinked = individualSailsLinked;
+exports.deleteUnlinkedReportingRecords = deleteUnlinkedReportingRecords;

@@ -1,6 +1,5 @@
 const Airtable = require('airtable');
 const slack = require('./slack');
-require('./helper').difference(Set);
 
 var base = new Airtable({ apiKey: process.env.airtable_api_key }).base(process.env.airtable_base_id);
 
@@ -38,96 +37,56 @@ async function getUnlinkedReportingRecords() {
   return records.map(record => { return record.id; });
 }
 
-async function boatSailsLinked() {
-  var reportingSet = new Set();
+async function getBoatLinkErrors() {
+  var set = new Set();
+  var duplicate = [];
+  var multiple = [];
   await base('Reporting').select({
     fields: ['ID', 'ByBoatSails'],
     filterByFormula: "NOT({ByBoatSails} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
-      byBoatSails = record.get('ByBoatSails');
+      var byBoatSails = record.get('ByBoatSails');
+
       if (byBoatSails.length > 1) {
-        slack.post('multiple by boat sails in one reporting record: ' + record.get('ID'));
+        multiple.push(...byBoatSails);
       }
-      byBoatSails.forEach((sailId) => {
-        if (reportingSet.has(sailId)) {
-          slack.post('duplicate by boat sail: ' + sailId);
+
+      byBoatSails.forEach((sail) => {
+        if (set.has(sail)) {
+          duplicate.push(sail);
         }
-        reportingSet.add(sailId);
-      })
+        set.add(sail);
+      });
+
     });
   });
-
-  var boatsSet = new Set();
-  await base('By Boat Sails').select({
-    fields: ['Status'],
-    filterByFormula: "NOT({Status} = 'Cancelled')"
-  }).all().then((records) => {
-    records.forEach((sail) => {
-      boatsSet.add(sail.id)
-    });
-  });
-
-  var notInBoat = reportingSet.difference(boatsSet);
-  var notInReporting = boatsSet.difference(reportingSet);
-
-  if (notInBoat.size > 0) {
-    var string = '';
-    notInBoat.forEach(value => string += value + ' ')
-    slack.post('in reporting, not in boat: ' + string);
-  }
-
-  if (notInReporting.size > 0) {
-    var string = '';
-    notInReporting.forEach(value => string += value + ' ')
-    slack.post('in boat, not in reporting: ' + string);
-  }
+  return { duplicate: duplicate, multiple: multiple };
 }
 
-async function individualSailsLinked() {
-  var reportingSet = new Set();
+async function getIndividualLinkErrors() {
+  var set = new Set();
+  var duplicate = [];
   await base('Reporting').select({
     fields: ['ID', 'ByIndividualSails'],
     filterByFormula: "NOT({ByIndividualSails} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
-      byIndividualSails = record.get('ByIndividualSails');
-      byIndividualSails.forEach((sailId) => {
-        if (reportingSet.has(sailId)) {
-          slack.post('duplicate by individual sail: ' + sailId);
+      var byIndividualSails = record.get('ByIndividualSails');
+
+      byIndividualSails.forEach((sail) => {
+        if (set.has(sail)) {
+          duplicate.push(sail);
         }
-        reportingSet.add(sailId);
-      })
+        set.add(sail);
+      });
+
     });
   });
-
-  var individualSet = new Set();
-  await base('By Individual Sails').select({
-    fields: ['Status'],
-    filterByFormula: "NOT({Status} = 'Cancelled')"
-  }).all().then((records) => {
-    records.forEach((sail) => {
-      individualSet.add(sail.id)
-    });
-  });
-
-  var notInIndividual = reportingSet.difference(individualSet);
-  var notInReporting = individualSet.difference(reportingSet);
-
-  if (notInIndividual.size > 0) {
-    var string = '';
-    notInIndividual.forEach(value => string += value + ' ')
-    slack.post('in reporting, not in individual: ' + string);
-  }
-
-  if (notInReporting.size > 0) {
-    var string = '';
-    notInReporting.forEach(value => string += value + ' ')
-    slack.post('in individual, not in reporting: ' + string);
-  }
+  return {duplicate: duplicate};
 }
 
 exports.getReportingRecords = getReportingRecords;
-exports.boatSailsLinked = boatSailsLinked;
-exports.individualSailsLinked = individualSailsLinked;
 exports.getUnlinkedReportingRecords = getUnlinkedReportingRecords;
+exports.getBoatLinkErrors = getBoatLinkErrors;
+exports.getIndividualLinkErrors = getIndividualLinkErrors;

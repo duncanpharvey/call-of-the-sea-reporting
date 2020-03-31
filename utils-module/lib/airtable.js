@@ -1,5 +1,4 @@
 const Airtable = require('airtable');
-const slack = require('./slack');
 
 var base = new Airtable({ apiKey: process.env.airtable_api_key }).base(process.env.airtable_base_id);
 
@@ -83,7 +82,7 @@ async function getIndividualLinkErrors() {
 
     });
   });
-  return {duplicate: duplicate};
+  return { duplicate: duplicate };
 }
 
 exports.getReportingRecords = getReportingRecords;

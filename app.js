@@ -1,4 +1,12 @@
-const express = require("express");
-const app = express();
+const tasks = require('./tasks');
 
-app.listen(process.env.PORT);
+async function main() {
+    console.log('running job');
+
+    await tasks.validateData.main();
+    await tasks.airtableToGoogleSheets.main();
+
+    console.log('finished running job');
+}
+
+main();

@@ -27,6 +27,18 @@ async function logIndividualLinkErrors() {
     }
 }
 
+async function logEventIdLinkErrors() {
+    var result = await utils.Airtable.getEventIdLinkErrors();
+
+    if (result.missing.length > 0) {
+        utils.Slack.post('missing records in reporting table: ' + result.missing.join(', '));
+    }
+
+    if (result.badLink.length > 0) {
+        utils.Slack.post('eventIds not linked properly for records: ' + result.badLink.join(', '));
+    }
+}
+
 async function validateData() {
     console.log('starting to validate data');
 
@@ -36,8 +48,11 @@ async function validateData() {
     console.log('checking if by boat sails are linked properly');
     await logBoatLinkErrors();
 
-    console.log('checking if by individual sails are linked propertly');
+    console.log('checking if by individual sails are linked properly');
     await logIndividualLinkErrors();
+
+    console.log('checking if eventIds are linked properly')
+    await logEventIdLinkErrors();
 
     console.log('finished validating data');
 }
@@ -55,3 +70,4 @@ exports.main = main;
 exports.logUnlinkedReportingRecords = logUnlinkedReportingRecords;
 exports.logBoatLinkErrors = logBoatLinkErrors;
 exports.logIndividualLinkErrors = logIndividualLinkErrors;
+exports.logEventIdLinkErrors = logEventIdLinkErrors;

@@ -51,11 +51,11 @@ async function getBoatLinkErrors() {
         multiple.push(...byBoatSails);
       }
 
-      byBoatSails.forEach((sail) => {
-        if (set.has(sail)) {
-          duplicate.push(sail);
+      byBoatSails.forEach((sailId) => {
+        if (set.has(sailId)) {
+          duplicate.push(sailId);
         }
-        set.add(sail);
+        set.add(sailId);
       });
 
     });
@@ -73,11 +73,11 @@ async function getIndividualLinkErrors() {
     records.forEach((record) => {
       var byIndividualSails = record.get('ByIndividualSails');
 
-      byIndividualSails.forEach((sail) => {
-        if (set.has(sail)) {
-          duplicate.push(sail);
+      byIndividualSails.forEach((sailId) => {
+        if (set.has(sailId)) {
+          duplicate.push(sailId);
         }
-        set.add(sail);
+        set.add(sailId);
       });
 
     });
@@ -85,7 +85,68 @@ async function getIndividualLinkErrors() {
   return { duplicate: duplicate };
 }
 
+async function getEventIdLinkErrors() {
+  var reportingMap = {}
+  var sailMap = {}
+  var missing = [];
+  var badLink = [];
+
+  await base('Reporting').select({
+    fields: ['EventId', 'ByIndividualSails'],
+    filterByFormula: "NOT({ByIndividualSails} = '')"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      var byIndividualSails = record.get('ByIndividualSails');
+      byIndividualSails.forEach((sailId) => {
+        reportingMap[sailId] = record.get('EventId');
+      });
+    });
+  });
+
+  await base('Reporting').select({
+    fields: ['EventId', 'ByBoatSails'],
+    filterByFormula: "NOT({ByBoatSails} = '')"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      var byBoatSails = record.get('ByBoatSails');
+      byBoatSails.forEach((sailId) => {
+        reportingMap[sailId] = record.get('EventId');
+      });
+    });
+  });
+
+  await base('By Individual Sails').select({
+    fields: ['EventId'],
+    filterByFormula: "NOT({Status} = 'Cancelled')"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      sailMap[record.id] = record.get('EventId');
+    });
+  });
+
+  await base('By Boat Sails').select({
+    fields: ['EventId'],
+    filterByFormula: "NOT({Status} = 'Cancelled')"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      sailMap[record.id] = record.get('EventId');
+    });
+  });
+
+  for (var id of Object.keys(sailMap)) {
+    if (!(id in reportingMap)) {
+      missing.push(id);
+    }
+    else if (sailMap[id] != reportingMap[id]) {
+      badLink.push(id);
+    }
+  }
+
+  return { missing: missing, badLink: badLink };
+}
+
 exports.getReportingRecords = getReportingRecords;
 exports.getUnlinkedReportingRecords = getUnlinkedReportingRecords;
 exports.getBoatLinkErrors = getBoatLinkErrors;
 exports.getIndividualLinkErrors = getIndividualLinkErrors;
+exports.getEventIdLinkErrors = getEventIdLinkErrors;

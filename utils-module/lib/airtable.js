@@ -41,7 +41,7 @@ async function getBoatLinkErrors() {
   var duplicate = [];
   var multiple = [];
   await base('Reporting').select({
-    fields: ['ID', 'ByBoatSails'],
+    fields: ['ByBoatSails'],
     filterByFormula: "NOT({ByBoatSails} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
@@ -67,7 +67,7 @@ async function getIndividualLinkErrors() {
   var set = new Set();
   var duplicate = [];
   await base('Reporting').select({
-    fields: ['ID', 'ByIndividualSails'],
+    fields: ['ByIndividualSails'],
     filterByFormula: "NOT({ByIndividualSails} = '')"
   }).all().then((records) => {
     records.forEach((record) => {

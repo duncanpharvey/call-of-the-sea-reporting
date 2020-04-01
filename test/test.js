@@ -25,11 +25,11 @@ describe('Airtable', async function () {
         it('should post to slack if there are multiple by boat records linked to one reporting record', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
                 .get('/v0/appJdPg4q3BR7N0zb/Reporting')
-                .query({ "fields%5B%5D": ["ID", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
+                .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
-                    "records": [{ "id": "airtableId1", "fields": { "ID": 1, "ByBoatSails": ["id1", "id2"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByBoatSails": ["id3", "id4"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByBoatSails": ["id5"] } }]
+                    "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1", "id2"] } },
+                    { "id": "airtableId2", "fields": { "ByBoatSails": ["id3", "id4"] } },
+                    { "id": "airtableId2", "fields": { "ByBoatSails": ["id5"] } }]
                 });
 
             nock(process.env.slack_webhook_url.slice(0, 23), { "encodedQueryParams": true })
@@ -43,13 +43,13 @@ describe('Airtable', async function () {
         it('should post to slack if there are duplicate by boat sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
                 .get('/v0/appJdPg4q3BR7N0zb/Reporting')
-                .query({ "fields%5B%5D": ["ID", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
+                .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
-                    "records": [{ "id": "airtableId1", "fields": { "ID": 1, "ByBoatSails": ["id1"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByBoatSails": ["id1"] } },
-                    { "id": "airtableId3", "fields": { "ID": 3, "ByBoatSails": ["id2"] } },
-                    { "id": "airtableId4", "fields": { "ID": 4, "ByBoatSails": ["id2"] } },
-                    { "id": "airtableId4", "fields": { "ID": 4, "ByBoatSails": ["id3"] } }]
+                    "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1"] } },
+                    { "id": "airtableId2", "fields": { "ByBoatSails": ["id1"] } },
+                    { "id": "airtableId3", "fields": { "ByBoatSails": ["id2"] } },
+                    { "id": "airtableId4", "fields": { "ByBoatSails": ["id2"] } },
+                    { "id": "airtableId4", "fields": { "ByBoatSails": ["id3"] } }]
                 });
 
             nock(process.env.slack_webhook_url.slice(0, 23), { "encodedQueryParams": true })
@@ -63,10 +63,10 @@ describe('Airtable', async function () {
         it('should not post to slack if there are not multiple by boat records linked to one reporting record and no duplicate by boat sails', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
                 .get('/v0/appJdPg4q3BR7N0zb/Reporting')
-                .query({ "fields%5B%5D": ["ID", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
+                .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
-                    "records": [{ "id": "airtableId1", "fields": { "ID": 1, "ByBoatSails": ["id1"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByBoatSails": ["id2"] } }]
+                    "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1"] } },
+                    { "id": "airtableId2", "fields": { "ByBoatSails": ["id2"] } }]
                 });
 
             await tasks.validateData.logBoatLinkErrors();
@@ -78,13 +78,13 @@ describe('Airtable', async function () {
         it('should post to slack if there are duplicate by individual sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
                 .get('/v0/appJdPg4q3BR7N0zb/Reporting')
-                .query({ "fields%5B%5D": ["ID", "ByIndividualSails"], "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
+                .query({ "fields%5B%5D": "ByIndividualSails", "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
-                    "records": [{ "id": "airtableId1", "fields": { "ID": 1, "ByIndividualSails": ["id1"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByIndividualSails": ["id1"] } },
-                    { "id": "airtableId3", "fields": { "ID": 3, "ByIndividualSails": ["id2", "id2"] } },
-                    { "id": "airtableId4", "fields": { "ID": 4, "ByIndividualSails": ["id3"] } },
-                    { "id": "airtableId5", "fields": { "ID": 5, "ByIndividualSails": ["id4", "id3"] } }]
+                    "records": [{ "id": "airtableId1", "fields": { "ByIndividualSails": ["id1"] } },
+                    { "id": "airtableId2", "fields": { "ByIndividualSails": ["id1"] } },
+                    { "id": "airtableId3", "fields": { "ByIndividualSails": ["id2", "id2"] } },
+                    { "id": "airtableId4", "fields": { "ByIndividualSails": ["id3"] } },
+                    { "id": "airtableId5", "fields": { "ByIndividualSails": ["id4", "id3"] } }]
                 });
 
             nock(process.env.slack_webhook_url.slice(0, 23), { "encodedQueryParams": true })
@@ -98,10 +98,10 @@ describe('Airtable', async function () {
         it('should not post to slack if there are not duplicate by individual sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
                 .get('/v0/appJdPg4q3BR7N0zb/Reporting')
-                .query({ "fields%5B%5D": ["ID", "ByIndividualSails"], "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
+                .query({ "fields%5B%5D": "ByIndividualSails", "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
-                    "records": [{ "id": "airtableId1", "fields": { "ID": 1, "ByIndividualSails": ["id1, id2"] } },
-                    { "id": "airtableId2", "fields": { "ID": 2, "ByIndividualSails": ["id3, id4"] } }]
+                    "records": [{ "id": "airtableId1", "fields": { "ByIndividualSails": ["id1, id2"] } },
+                    { "id": "airtableId2", "fields": { "ByIndividualSails": ["id3, id4"] } }]
                 });
 
             await tasks.validateData.logIndividualLinkErrors();

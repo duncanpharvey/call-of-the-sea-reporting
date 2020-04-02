@@ -7,7 +7,59 @@ const spies = require('chai-spies');
 chai.use(spies);
 const expect = chai.expect;
 
-describe('Airtable', async function () {
+describe('Airtable to Google Sheets', async function () {
+    afterEach(function () {
+        if (!nock.isDone()) {
+            this.test.error(new Error('Not all nock interceptors were used!'));
+            nock.cleanAll();
+        }
+    });
+
+    it('should update google sheets with reporting data from airtable', async function () {
+        nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+            .get('/v0/' + process.env.airtable_base_id + '/Reporting')
+            .query({ "fields%5B%5D": process.env.fields.split(', '), "filterByFormula": "OR%28NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29%2C%20NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29%29", "sort%5B0%5D%5Bfield%5D": "ID", "sort%5B0%5D%5Bdirection%5D": "asc" })
+            .reply(200, {
+                "records": [{ "id": "airtableId1", "fields": { "ID": 1, "EventId": "eventId1", "ByBoatSails": ["byBoatId1"], "TotalCost": [0], "TotalPassengers": [0], "DisembarkingDate": "2020-01-01", "BoardingDate": "2020-01-01", "VesselConductingSail": ["Matthew Turner"], "CapacityWeight": 1, "SailingSegments": [1], "Paid": [0], "Outstanding": [0] } },
+                { "id": "airtableId2", "fields": { "ID": 2, "EventId": "eventId2", "ByIndividualSails": ["byIndivId1", "byIndivId2"], "TotalCost": [0], "TotalPassengers": [0], "DisembarkingDate": "2020-01-07", "BoardingDate": "2020-01-02", "VesselConductingSail": ["Seaward"], "CapacityWeight": 1, "SailingSegments": [1], "Paid": [0], "Outstanding": [0] } }]
+            });
+
+        nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+            .get('/v0/' + process.env.airtable_base_id + '/By%20Boat%20Sails')
+            .query({ "fields%5B%5D": "Sail_Id" })
+            .reply(200, { "records": [{ "id": "byBoatId1", "fields": { "Sail_Id": 3 } }] });
+
+        nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+            .get('/v0/' + process.env.airtable_base_id + '/By%20Individual%20Sails')
+            .query({ "fields%5B%5D": "Participant_Id" })
+            .reply(200, {
+                "records": [{ "id": "byIndivId1", "fields": { "Participant_Id": 4 } },
+                { "id": "byIndivId2", "fields": { "Participant_Id": 5 } }]
+            });
+
+        nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+            .post('/v4/spreadsheets/' + process.env.google_spreadsheet_id + ':batchUpdate', { "requests": [{ "updateSheetProperties": { "properties": { "sheetId": process.env.google_sheet_id, "gridProperties": { "frozenColumnCount": 1, "frozenRowCount": 1 } }, "fields": "gridProperties(frozenRowCount, frozenColumnCount)" } }] })
+            .query({ "spreadsheetId": process.env.google_spreadsheet_id })
+            .reply(200);
+
+        nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+            .post('/v4/spreadsheets/' + process.env.google_spreadsheet_id + '/values/' + process.env.google_sheet_name + ':clear')
+            .query({ "spreadsheetId": process.env.google_spreadsheet_id })
+            .reply(200);
+
+        nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+            .put('/v4/spreadsheets/' + process.env.google_spreadsheet_id + '/values/' + process.env.google_sheet_name, {
+                "values": [process.env.fields.split(', '), [1, "eventId1", "3", null, "Matthew Turner", "0", "2020-01-01", "2020-01-01", "1", "0", 1, null, null, null, "0", "0"],
+                [2, "eventId2", null, "4\n5", "Seaward", "0", "2020-01-02", "2020-01-07", "1", "0", 1, null, null, null, "0", "0"]]
+            })
+            .query({ "spreadsheetId": process.env.google_spreadsheet_id, "valueInputOption": "USER_ENTERED" })
+            .reply(200);
+
+        await tasks.airtableToGoogleSheets.main();
+    });
+});
+
+describe('Airtable Data Integrity', async function () {
     beforeEach(function () {
         chai.spy.on(utils.Slack, 'post');
     });
@@ -24,7 +76,7 @@ describe('Airtable', async function () {
     describe('By Boat', async function () {
         it('should post to slack if there are multiple by boat records linked to one reporting record', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
                     "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1", "id2"] } },
@@ -42,7 +94,7 @@ describe('Airtable', async function () {
 
         it('should post to slack if there are duplicate by boat sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
                     "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1"] } },
@@ -62,7 +114,7 @@ describe('Airtable', async function () {
 
         it('should not post to slack if there are not multiple by boat records linked to one reporting record and no duplicate by boat sails', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": "ByBoatSails", "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
                     "records": [{ "id": "airtableId1", "fields": { "ByBoatSails": ["id1"] } },
@@ -77,7 +129,7 @@ describe('Airtable', async function () {
     describe('By Individual', async function () {
         it('should post to slack if there are duplicate by individual sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": "ByIndividualSails", "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
                     "records": [{ "id": "airtableId1", "fields": { "ByIndividualSails": ["id1"] } },
@@ -97,7 +149,7 @@ describe('Airtable', async function () {
 
         it('should not post to slack if there are not duplicate by individual sails in reporting table', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": "ByIndividualSails", "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, {
                     "records": [{ "id": "airtableId1", "fields": { "ByIndividualSails": ["id1, id2"] } },
@@ -139,17 +191,17 @@ describe('Airtable', async function () {
 
         it('should post to slack if there are missing reporting records', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByIndividualSails"], "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId1", "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId2", "fields": { "EventId": "eventId2", "ByBoatSails": ["boatId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Individual%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Individual%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, {
                     "records": [{ "id": "indivId1", "fields": { "EventId": "eventId1" } },
@@ -157,7 +209,7 @@ describe('Airtable', async function () {
                 });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Boat%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Boat%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, {
                     "records": [{ "id": "boatId1", "fields": { "EventId": "eventId2" } },
@@ -174,24 +226,24 @@ describe('Airtable', async function () {
 
         it('should post to slack if eventIds are not linked properly', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByIndividualSails"], "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId1", "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId2", "fields": { "EventId": "eventId2", "ByBoatSails": ["boatId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Individual%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Individual%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, {
                     "records": [{ "id": "indivId1", "fields": { "EventId": "eventId3" } }]
                 });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Boat%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Boat%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, {
                     "records": [{ "id": "boatId1", "fields": { "EventId": "eventId4" } }]
@@ -207,22 +259,22 @@ describe('Airtable', async function () {
 
         it('should not post to slack if there are not missing reporting records and eventIds are linked properly', async function () {
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByIndividualSails"], "filterByFormula": "NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId1", "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/Reporting')
+                .get('/v0/' + process.env.airtable_base_id + '/Reporting')
                 .query({ "fields%5B%5D": ["EventId", "ByBoatSails"], "filterByFormula": "NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29" })
                 .reply(200, { "records": [{ "id": "airtableId2", "fields": { "EventId": "eventId2", "ByBoatSails": ["boatId1"] } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Individual%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Individual%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, { "records": [{ "id": "indivId1", "fields": { "EventId": "eventId1" } }] });
 
             nock('https://api.airtable.com:443', { "encodedQueryParams": true })
-                .get('/v0/appJdPg4q3BR7N0zb/By%20Boat%20Sails')
+                .get('/v0/' + process.env.airtable_base_id + '/By%20Boat%20Sails')
                 .query({ "fields%5B%5D": "EventId", "filterByFormula": "NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29" })
                 .reply(200, { "records": [{ "id": "boatId1", "fields": { "EventId": "eventId2" } }] });
 

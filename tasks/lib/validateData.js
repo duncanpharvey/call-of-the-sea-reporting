@@ -40,21 +40,13 @@ async function logEventIdLinkErrors() {
 }
 
 async function validateData() {
-    console.log('starting to validate data');
-
-    console.log('checking unlinked reporting records');
     await logUnlinkedReportingRecords();
 
-    console.log('checking if by boat sails are linked properly');
     await logBoatLinkErrors();
 
-    console.log('checking if by individual sails are linked properly');
     await logIndividualLinkErrors();
 
-    console.log('checking if eventIds are linked properly')
     await logEventIdLinkErrors();
-
-    console.log('finished validating data');
 }
 
 async function main() {

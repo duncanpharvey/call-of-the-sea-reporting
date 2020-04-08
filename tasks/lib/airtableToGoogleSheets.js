@@ -15,7 +15,9 @@ async function main() {
         await airtableToGoogleSheets();
     }
     catch (err) {
-        utils.Slack.post('google sheets update failed: ' + err);
+        var message = 'google sheets update failed: ' + err;
+        utils.Slack.post(message);
+        throw new Error(message);
     }
 }
 

@@ -5,7 +5,7 @@ var base = new Airtable({ apiKey: process.env.airtable_api_key }).base(process.e
 async function getReportingRecords(fields) {
   var sails = await base('Reporting').select({
     fields: fields,
-    filterByFormula: "OR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
+    filterByFormula: "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
     sort: [{ field: "ID", direction: "asc" }]
   }).all();
 
@@ -28,125 +28,110 @@ async function getReportingRecords(fields) {
   return { sails: sails, idMap: idMap };
 }
 
-async function getUnlinkedReportingRecords() {
-  var records = await base('Reporting').select({
+function jsonEqual(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+async function getReportingDifference() {
+  var reportingMap = {};
+  var byBoatMap = {};
+  var byIndividualMap = {};
+  var add = [];
+
+  var remove = await base('Reporting').select({
     fields: ['ID'],
-    filterByFormula: "AND({ByBoatSails} = '', {ByIndividualSails} = '')"
+    filterByFormula: "NOT(XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = '')))"
   }).all();
-  return records.map(record => { return record.id; });
-}
 
-async function getBoatLinkErrors() {
-  var set = new Set();
-  var duplicate = [];
-  var multiple = [];
+  remove = remove.map((record) => { return record.id; });
+
   await base('Reporting').select({
-    fields: ['ByBoatSails'],
-    filterByFormula: "NOT({ByBoatSails} = '')"
+    fields: ['EventId', 'ByBoatSails', 'ByIndividualSails'],
+    filterByFormula: "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))"
   }).all().then((records) => {
     records.forEach((record) => {
+      var eventId = record.get('EventId');
       var byBoatSails = record.get('ByBoatSails');
-
-      if (byBoatSails.length > 1) {
-        multiple.push(...byBoatSails);
+      var byIndividualSails = record.get('ByIndividualSails');
+      if (byBoatSails) {
+        reportingMap[eventId] = { 'id': record.id, 'records': byBoatSails };
       }
-
-      byBoatSails.forEach((sailId) => {
-        if (set.has(sailId)) {
-          duplicate.push(sailId);
-        }
-        set.add(sailId);
-      });
-
-    });
-  });
-  return { duplicate: duplicate, multiple: multiple };
-}
-
-async function getIndividualLinkErrors() {
-  var set = new Set();
-  var duplicate = [];
-  await base('Reporting').select({
-    fields: ['ByIndividualSails'],
-    filterByFormula: "NOT({ByIndividualSails} = '')"
-  }).all().then((records) => {
-    records.forEach((record) => {
-      var byIndividualSails = record.get('ByIndividualSails');
-
-      byIndividualSails.forEach((sailId) => {
-        if (set.has(sailId)) {
-          duplicate.push(sailId);
-        }
-        set.add(sailId);
-      });
-
-    });
-  });
-  return { duplicate: duplicate };
-}
-
-async function getEventIdLinkErrors() {
-  var reportingMap = {}
-  var sailMap = {}
-  var missing = [];
-  var badLink = [];
-
-  await base('Reporting').select({
-    fields: ['EventId', 'ByIndividualSails'],
-    filterByFormula: "NOT({ByIndividualSails} = '')"
-  }).all().then((records) => {
-    records.forEach((record) => {
-      var byIndividualSails = record.get('ByIndividualSails');
-      byIndividualSails.forEach((sailId) => {
-        reportingMap[sailId] = record.get('EventId');
-      });
-    });
-  });
-
-  await base('Reporting').select({
-    fields: ['EventId', 'ByBoatSails'],
-    filterByFormula: "NOT({ByBoatSails} = '')"
-  }).all().then((records) => {
-    records.forEach((record) => {
-      var byBoatSails = record.get('ByBoatSails');
-      byBoatSails.forEach((sailId) => {
-        reportingMap[sailId] = record.get('EventId');
-      });
-    });
-  });
-
-  await base('By Individual Sails').select({
-    fields: ['EventId'],
-    filterByFormula: "NOT({Status} = 'Cancelled')"
-  }).all().then((records) => {
-    records.forEach((record) => {
-      sailMap[record.id] = record.get('EventId');
-    });
+      else if (byIndividualSails) {
+        reportingMap[eventId] = { 'id': record.id, 'records': byIndividualSails };
+      }
+    })
   });
 
   await base('By Boat Sails').select({
     fields: ['EventId'],
-    filterByFormula: "NOT({Status} = 'Cancelled')"
+    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
   }).all().then((records) => {
     records.forEach((record) => {
-      sailMap[record.id] = record.get('EventId');
-    });
+      byBoatMap[record.get('EventId')] = [record.id];
+    })
   });
 
-  for (var id of Object.keys(sailMap)) {
-    if (!(id in reportingMap)) {
-      missing.push(id);
+  await base('By Individual Sails').select({
+    fields: ['EventId'],
+    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      var eventId = record.get('EventId');
+      var linkedRecords;
+      if (eventId in byIndividualMap) {
+        linkedRecords = byIndividualMap[eventId];
+      }
+      else {
+        linkedRecords = [];
+      }
+      linkedRecords.push(record.id);
+      byIndividualMap[eventId] = linkedRecords;
+    })
+  });
+
+  for (var eventId of Object.keys(byBoatMap)) {
+    var byBoatSails = byBoatMap[eventId]
+    if ((eventId in reportingMap) && jsonEqual(byBoatSails, reportingMap[eventId].records)) {
+      delete reportingMap[eventId];
     }
-    else if (sailMap[id] != reportingMap[id]) {
-      badLink.push(id);
+    else {
+      add.push({ 'fields': { 'EventId': eventId, 'ByBoatSails': byBoatSails } });
     }
   }
 
-  return { missing: missing, badLink: badLink };
+  for (var eventId of Object.keys(byIndividualMap)) {
+    var byIndividualSails = byIndividualMap[eventId].sort();
+    if ((eventId in reportingMap) && jsonEqual(byIndividualSails, reportingMap[eventId].records.sort())) {
+      delete reportingMap[eventId];
+    }
+    else {
+      add.push({ 'fields': { 'EventId': eventId, 'ByIndividualSails': byIndividualSails } });
+    }
+  }
+
+  remove.push(...Object.keys(reportingMap).map((eventId) => { return reportingMap[eventId].id; }));
+
+  return { add: add, remove: remove };
+}
+
+
+async function addReportingRecords(records) {
+  var i, n, tempArr, chunk = 10;
+  for (i = 0, n = records.length; i < n; i += chunk) {
+    tempArr = records.slice(i, i + chunk);
+    base('Reporting').create(tempArr);
+  }
+}
+
+async function deleteReportingRecords(records) {
+  var i, n, tempArr, chunk = 10;
+  for (i = 0, n = records.length; i < n; i += chunk) {
+    tempArr = records.slice(i, i + chunk);
+    base('Reporting').destroy(tempArr);
+  }
 }
 
 exports.getReportingRecords = getReportingRecords;
-exports.getUnlinkedReportingRecords = getUnlinkedReportingRecords;
-exports.getBoatLinkErrors = getBoatLinkErrors;
-exports.getIndividualLinkErrors = getIndividualLinkErrors;
-exports.getEventIdLinkErrors = getEventIdLinkErrors;
+exports.getReportingDifference = getReportingDifference;
+exports.addReportingRecords = addReportingRecords;
+exports.deleteReportingRecords = deleteReportingRecords;

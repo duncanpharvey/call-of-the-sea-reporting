@@ -1,7 +1,7 @@
 const tasks = require('./tasks');
 
 async function main() {
-    await tasks.validateData.main();
+    await tasks.syncReportingTable.main();
     await tasks.airtableToGoogleSheets.main();
 }
 

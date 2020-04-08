@@ -1,12 +1,13 @@
 const { google } = require('googleapis');
 
+const jwtClient = new google.auth.JWT(
+  process.env.google_client_email,
+  null,
+  process.env.google_private_key.replace(/\\n/g, '\n'),
+  ['https://www.googleapis.com/auth/spreadsheets']
+);
+
 async function updateGoogleSheets(data) {
-  const jwtClient = new google.auth.JWT(
-    process.env.google_client_email,
-    null,
-    process.env.google_private_key.replace(/\\n/g, '\n'),
-    ['https://www.googleapis.com/auth/spreadsheets']
-  );
 
   google.options({
     auth: jwtClient,

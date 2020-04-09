@@ -1,7 +1,9 @@
+process.env.NODE_ENV = "test"
+
 const nock = require('nock');
 const tasks = require('../tasks');
 
-// nock.disableNetConnect()
+nock.disableNetConnect()
 
 // should fail on no nock match for request
 
@@ -80,11 +82,13 @@ describe('Airtable to Google Sheets', async function () {
                 ]
             });
 
-        /*
-        nock('https://www.googleapis.com:443')
-            .post('/oauth2/v4/token')
+        nock('https://www.googleapis.com:443', { "encodedQueryParams": true })
+            .persist()
+            .post('/oauth2/v4/token', {
+                "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                "assertion": /.*/
+            })
             .reply(200);
-        */
 
         nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
             .post('/v4/spreadsheets/' + process.env.google_spreadsheet_id + ':batchUpdate', { "requests": [{ "updateSheetProperties": { "properties": { "sheetId": process.env.google_sheet_id, "gridProperties": { "frozenColumnCount": 1, "frozenRowCount": 1 } }, "fields": "gridProperties(frozenRowCount, frozenColumnCount)" } }] })
@@ -337,7 +341,9 @@ describe('Airtable Reporting Sync', async function () {
 
         linkedReportingRecords({
             "records": [
-                { "id": "reportingId3", "fields": { "EventId": "eventId3", "ByBoatSails": ["boatId2"] } }
+                { "id": "reportingId3", "fields": { "EventId": "eventId3", "ByBoatSails": ["boatId2"] } },
+                { "id": "reportingId4", "fields": { "EventId": "eventId5", "ByBoatSails": ["boatId3"] } },
+                { "id": "reportingId5", "fields": { "EventId": "eventId6", "ByBoatSails": ["boatId4"] } }
             ]
         });
 
@@ -371,12 +377,15 @@ describe('Airtable Reporting Sync', async function () {
 
         addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3';
+        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3&records%5B%5D=reportingId4&records%5B%5D=reportingId5';
 
         var deleteResponse = {
             records: [
                 { deleted: true, id: 'reportingId1' },
-                { deleted: true, id: 'reportingId2' }
+                { deleted: true, id: 'reportingId2' },
+                { deleted: true, id: 'reportingId3' },
+                { deleted: true, id: 'reportingId4' },
+                { deleted: true, id: 'reportingId5' }
             ]
         };
 

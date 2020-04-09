@@ -43,6 +43,8 @@ async function getReportingDifference() {
     filterByFormula: "NOT(XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = '')))"
   }).all();
 
+  // to do: log duplicate eventIds across all by boat and individual sail records
+
   remove = remove.map((record) => { return record.id; });
 
   await base('Reporting').select({

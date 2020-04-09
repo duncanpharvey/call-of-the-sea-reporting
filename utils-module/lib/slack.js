@@ -4,6 +4,7 @@ slack = new Slack();
 slack.setWebhook(process.env.slack_webhook_url);
 
 function post(message) {
+  if (process.env.NODE_ENV == "test") return;
   slack.webhook({
     channel: process.env.slack_channel,
     text: message,

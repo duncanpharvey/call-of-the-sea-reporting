@@ -49,4 +49,6 @@ async function updateGoogleSheets(data) {
   });
 };
 
-exports.updateGoogleSheets = updateGoogleSheets;
+module.exports = {
+  updateGoogleSheets: updateGoogleSheets
+};

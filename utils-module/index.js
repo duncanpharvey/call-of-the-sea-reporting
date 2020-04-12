@@ -1,4 +1,6 @@
-exports.Airtable = require('./lib/airtable');
-exports.Google = require('./lib/google');
-exports.Common = require('./lib/common');
-exports.Slack = require('./lib/slack');
+module.exports = {
+    Airtable: require('./lib/airtable'),
+    Google: require('./lib/google'),
+    Common: require('./lib/common'),
+    Slack: require('./lib/slack')
+};

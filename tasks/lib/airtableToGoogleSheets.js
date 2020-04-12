@@ -2,9 +2,9 @@ const utils = require('../../utils-module');
 
 async function airtableToGoogleSheets() {
     var fields = process.env.fields.split(', ');
-    var result = await utils.Airtable.getReportingRecords(fields);
-    var sails = utils.Common.mapRecords(result.sails, result.idMap, fields);
-    await utils.Google.updateGoogleSheets(sails);
+    var airtableRecords = await utils.Airtable.getReportingRecords(fields);
+    var googleRecords = utils.Common.mapFromAirtableToGoogle(airtableRecords, fields);
+    await utils.Google.updateGoogleSheets(googleRecords);
 }
 
 async function main() {

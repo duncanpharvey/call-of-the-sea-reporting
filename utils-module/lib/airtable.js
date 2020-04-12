@@ -3,12 +3,6 @@ const Airtable = require('airtable');
 var base = new Airtable({ apiKey: process.env.airtable_api_key }).base(process.env.airtable_base_id);
 
 async function getReportingRecords(fields) {
-  var sails = await base('Reporting').select({
-    fields: fields,
-    filterByFormula: "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
-    sort: [{ field: "ID", direction: "asc" }]
-  }).all();
-
   var idMap = {};
 
   var boats = await base('By Boat Sails').select({
@@ -25,7 +19,30 @@ async function getReportingRecords(fields) {
     idMap[participant.id] = participant.get('Participant_Id');
   });
 
-  return { sails: sails, idMap: idMap };
+  var sails = [];
+  await base('Reporting').select({
+    fields: fields,
+    filterByFormula: "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
+    sort: [{ field: "ID", direction: "asc" }]
+  }).all().then((records) => {
+    records.forEach((record) => {
+      sail = record['_rawJson']['fields'];
+
+      byBoatSails = sail['ByBoatSails'];
+      if (byBoatSails) {
+        sail['ByBoatSails'] = byBoatSails.map(s => { return idMap[s]; });
+      }
+
+      byIndividualSails = sail['ByIndividualSails'];
+      if (byIndividualSails) {
+        sail['ByIndividualSails'] = byIndividualSails.map(s => { return idMap[s]; });
+      }
+
+      sails.push(sail);
+    });
+  });
+
+  return sails;
 }
 
 function jsonEqual(a, b) {
@@ -133,7 +150,9 @@ async function deleteReportingRecords(records) {
   }
 }
 
-exports.getReportingRecords = getReportingRecords;
-exports.getReportingDifference = getReportingDifference;
-exports.addReportingRecords = addReportingRecords;
-exports.deleteReportingRecords = deleteReportingRecords;
+module.exports = {
+  getReportingRecords: getReportingRecords,
+  getReportingDifference: getReportingDifference,
+  addReportingRecords: addReportingRecords,
+  deleteReportingRecords: deleteReportingRecords
+};

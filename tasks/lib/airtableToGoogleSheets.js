@@ -7,7 +7,7 @@ async function airtableToGoogleSheets() {
     await utils.Google.updateGoogleSheets(googleRecords);
 }
 
-async function main() {
+async function run() {
     try {
         await airtableToGoogleSheets();
     }
@@ -18,4 +18,4 @@ async function main() {
     }
 }
 
-exports.main = main;
+exports.run = run;

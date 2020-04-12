@@ -1,7 +1,13 @@
 process.env.NODE_ENV = "test";
 
 const nock = require('nock');
+const chai = require('chai');
+const spies = require('chai-spies');
+chai.use(spies);
+const expect = chai.expect;
+
 const nocks = require('./nocks');
+const job = require('../job');
 const tasks = require('../tasks');
 
 nock.disableNetConnect();
@@ -9,15 +15,38 @@ nock.emitter.on('no match', (req) => {
     throw new Error("request not mocked: " + req.method + " " + req.path + " " + req.options.body);
 });
 
-function checkNocks() {
+function cleanNocks() {
     if (!nock.isDone()) {
         this.test.error(new Error('Not all nock interceptors were used!'));
-        nock.cleanAll();
     }
+    nock.cleanAll();
 }
 
+describe('Job Entry Point', async function () {
+    beforeEach(() => {
+        chai.spy.on(tasks.syncReportingTable, 'run');
+        chai.spy.on(tasks.airtableToGoogleSheets, 'run');
+    });
+
+    afterEach(() => {
+        cleanNocks();
+        chai.spy.restore(tasks.syncReportingTable, 'run');
+        chai.spy.restore(tasks.airtableToGoogleSheets, 'run');
+    });
+
+    it('should call sync reporting table and airtable to google sheets', async function () {
+        nocks.Airtable.get();
+        nocks.Google.auth();
+        nocks.Google.put();
+        nocks.Google.post();
+        await job.run();
+        expect(tasks.syncReportingTable.run).to.have.been.called.once;
+        expect(tasks.airtableToGoogleSheets.run).to.have.been.called.once;
+    });
+});
+
 describe('Airtable to Google Sheets', async function () {
-    afterEach(checkNocks);
+    afterEach(cleanNocks);
 
     it('should update google sheets with reporting data from airtable', async function () {
         nocks.Airtable.linkedReportingRecordsAllFields({
@@ -46,14 +75,14 @@ describe('Airtable to Google Sheets', async function () {
             [2, "eventId2", null, "4\n5", "Seaward", "0", "2020-01-02", "2020-01-07", "1", "0", 1, null, null, null, "0", "0"]]
         });
 
-        await tasks.airtableToGoogleSheets.main();
+        await tasks.airtableToGoogleSheets.run();
     });
 });
 
 
-describe('Airtable Reporting Sync', async function () {
+describe('Sync Airtable Reporting Table', async function () {
 
-    afterEach(checkNocks);
+    afterEach(cleanNocks);
 
     it('should add by boat sail records to reporting table if missing', async function () {
         nocks.Airtable.unlinkedReportingRecords({ "records": [] });
@@ -82,7 +111,7 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should add by individual sail records to reporting table if missing', async function () {
@@ -110,7 +139,7 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should update by boat sail records to reporting table if different', async function () {
@@ -159,7 +188,7 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should update by individual sail records to reporting table if different', async function () {
@@ -208,7 +237,7 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should not add any records to reporting table if already in sync', async function () {
@@ -233,7 +262,7 @@ describe('Airtable Reporting Sync', async function () {
             ]
         });
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should remove records from reporting table if linked to both by boat and by individual sails or neither', async function () {
@@ -257,7 +286,7 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 
     it('should add, update, and remove records in reporting table simultaneously', async function () {
@@ -319,6 +348,6 @@ describe('Airtable Reporting Sync', async function () {
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
 
-        await tasks.syncReportingTable.main();
+        await tasks.syncReportingTable.run();
     });
 });

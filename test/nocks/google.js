@@ -1,5 +1,21 @@
 const nock = require('nock');
 
+function post() {
+    nock('https://sheets.googleapis.com:443')
+        .persist()
+        .post(/.*/)
+        .query(true)
+        .reply(200);
+}
+
+function put() {
+    nock('https://sheets.googleapis.com:443')
+        .persist()
+        .put(/.*/)
+        .query(true)
+        .reply(200);
+}
+
 function auth() {
     nock('https://www.googleapis.com:443', { "encodedQueryParams": true })
         .persist()
@@ -32,6 +48,8 @@ function updateSheet(request) {
 }
 
 module.exports = {
+    put: put,
+    post: post,
     auth: auth,
     freezeSheet: freezeSheet,
     clearSheet: clearSheet,

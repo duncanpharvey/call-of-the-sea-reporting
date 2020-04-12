@@ -1,8 +1,3 @@
-const tasks = require('./tasks');
+const job = require('./job');
 
-async function main() {
-    await tasks.syncReportingTable.main();
-    await tasks.airtableToGoogleSheets.main();
-}
-
-main();
+job.run();

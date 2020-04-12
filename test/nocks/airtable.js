@@ -1,5 +1,13 @@
 const nock = require('nock');
 
+function get() {
+    nock('https://api.airtable.com:443')
+        .persist()
+        .get(/.*/)
+        .query(true)
+        .reply(200, { "records": [] });
+}
+
 function linkedReportingRecordsAllFields(response) {
     nock('https://api.airtable.com:443', { "encodedQueryParams": true })
         .get('/v0/' + process.env.airtable_base_id + '/Reporting')
@@ -63,6 +71,7 @@ function deleteReportingRecords(request, response) {
 }
 
 module.exports = {
+    get: get,
     linkedReportingRecordsAllFields: linkedReportingRecordsAllFields,
     byBoatSailIds: byBoatSailIds,
     byIndividualSailIds: byIndividualSailIds,

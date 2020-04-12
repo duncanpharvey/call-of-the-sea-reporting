@@ -1,3 +1,5 @@
 #!/usr/bin/env node
 
-require('../app.js');
+app = require('../job');
+
+job.run();

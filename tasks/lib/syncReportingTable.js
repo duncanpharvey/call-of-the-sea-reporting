@@ -8,7 +8,7 @@ async function syncReportingTable() {
     await utils.Airtable.addReportingRecords(results.add);
 }
 
-async function main() {
+async function run() {
     try {
         await syncReportingTable();
     }
@@ -19,4 +19,4 @@ async function main() {
     }
 }
 
-exports.main = main;
+exports.run = run;

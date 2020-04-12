@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-app = require('../job');
+const job = require('../job');
 
 job.run();

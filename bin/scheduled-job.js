@@ -1,5 +1,4 @@
 #!/usr/bin/env node
+const app = require('../app.js');
 
-const job = require('../job');
-
-job.run();
+app.run();

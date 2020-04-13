@@ -4,8 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "node -r dotenv/config app.js",
-    "start": "node app.js",
+    "dev": "node -r dotenv/config ./bin/scheduled-job.js",
     "test": "mocha -r dotenv/config"
   },
   "repository": {

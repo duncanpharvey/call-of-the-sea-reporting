@@ -7,8 +7,8 @@ chai.use(spies);
 const expect = chai.expect;
 
 const nocks = require('./nocks');
-const job = require('../job');
 const tasks = require('../tasks');
+const app = require('../app.js');
 
 nock.disableNetConnect();
 nock.emitter.on('no match', (req) => {
@@ -39,7 +39,7 @@ describe('Job Entry Point', async function () {
         nocks.Google.auth();
         nocks.Google.put();
         nocks.Google.post();
-        await job.run();
+        await app.run();
         expect(tasks.syncReportingTable.run).to.have.been.called.once;
         expect(tasks.airtableToGoogleSheets.run).to.have.been.called.once;
     });

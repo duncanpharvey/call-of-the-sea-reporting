@@ -116,33 +116,53 @@ describe('Sync Airtable Reporting Table', async function () {
 
     it('should add by individual sail records to reporting table if missing', async function () {
         nocks.Airtable.unlinkedReportingRecords({ "records": [] });
-        nocks.Airtable.linkedReportingRecords({ "records": [] });
+
+        nocks.Airtable.linkedReportingRecords({
+            "records": [
+                { "id": "reportingId1", "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId2"] } }
+            ]
+        });
+
         nocks.Airtable.byBoatSails({ "records": [] });
 
         nocks.Airtable.byIndividualSails({
             "records": [
-                { "id": "indivId1", "fields": { "EventId": "eventId1" } }
+                { "id": "indivId1", "fields": { "EventId": "eventId1" } },
+                { "id": "indivId2", "fields": { "EventId": "eventId2" } },
+                { "id": "indivId3", "fields": { "EventId": "eventId2" } }
             ]
         });
 
         var addRequest = {
             "records": [
-                { "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } }
+                { "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } },
+                { "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId2", "indivId3"] } }
             ]
         };
 
         var addResponse = {
             records: [
-                { "id": "newId1" }
+                { "id": "newId1" },
+                { "id": "newId2" }
             ]
         };
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
+        var deleteRequest = '?records%5B%5D=reportingId1';
+
+        var deleteResponse = {
+            records: [
+                { deleted: true, id: 'reportingId1' }
+            ]
+        };
+
+        nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
+
         await tasks.syncReportingTable.run();
     });
 
-    it('should update by boat sail records to reporting table if different', async function () {
+    it('should update by boat sail records in reporting table if different', async function () {
         nocks.Airtable.unlinkedReportingRecords({ "records": [] });
 
         nocks.Airtable.linkedReportingRecords({
@@ -191,13 +211,14 @@ describe('Sync Airtable Reporting Table', async function () {
         await tasks.syncReportingTable.run();
     });
 
-    it('should update by individual sail records to reporting table if different', async function () {
+    it('should update by individual sail records in reporting table if different', async function () {
         nocks.Airtable.unlinkedReportingRecords({ "records": [] });
 
         nocks.Airtable.linkedReportingRecords({
             "records": [
                 { "id": "reportingId1", "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId3"] } },
-                { "id": "reportingId2", "fields": { "EventId": "eventId3", "ByIndividualSails": ["indivId2"] } }
+                { "id": "reportingId2", "fields": { "EventId": "eventId3", "ByIndividualSails": ["indivId2"] } },
+                { "id": "reportingId3", "fields": { "EventId": "eventId4", "ByIndividualSails": ["indivId3"] } }
             ]
         });
 
@@ -206,32 +227,37 @@ describe('Sync Airtable Reporting Table', async function () {
         nocks.Airtable.byIndividualSails({
             "records": [
                 { "id": "indivId1", "fields": { "EventId": "eventId1" } },
-                { "id": "indivId2", "fields": { "EventId": "eventId2" } }
+                { "id": "indivId2", "fields": { "EventId": "eventId2" } },
+                { "id": "indivId3", "fields": { "EventId": "eventId4" } },
+                { "id": "indivId4", "fields": { "EventId": "eventId4" } }
             ]
         });
 
         var addRequest = {
             "records": [
                 { "fields": { "EventId": "eventId1", "ByIndividualSails": ["indivId1"] } },
-                { "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId2"] } }
+                { "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId2"] } },
+                { "fields": { "EventId": "eventId4", "ByIndividualSails": ["indivId3", "indivId4"] } }
             ]
         };
 
         var addResponse = {
             records: [
                 { "id": "newId1" },
-                { "id": "newId2" }
+                { "id": "newId2" },
+                { "id": "newId3" }
             ]
         };
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2';
+        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3';
 
         var deleteResponse = {
             records: [
                 { deleted: true, id: 'reportingId1' },
-                { deleted: true, id: 'reportingId2' }
+                { deleted: true, id: 'reportingId2' },
+                { deleted: true, id: 'reportingId3' }
             ]
         };
 
@@ -246,7 +272,8 @@ describe('Sync Airtable Reporting Table', async function () {
         nocks.Airtable.linkedReportingRecords({
             "records": [
                 { "id": "reportingId1", "fields": { "EventId": "eventId1", "ByBoatSails": ["boatId1"] } },
-                { "id": "reportingId2", "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId1"] } }
+                { "id": "reportingId2", "fields": { "EventId": "eventId2", "ByIndividualSails": ["indivId1"] } },
+                { "id": "reportingId3", "fields": { "EventId": "eventId3", "ByIndividualSails": ["indivId2", "indivId3"] } }
             ]
         });
 
@@ -258,7 +285,9 @@ describe('Sync Airtable Reporting Table', async function () {
 
         nocks.Airtable.byIndividualSails({
             "records": [
-                { "id": "indivId1", "fields": { "EventId": "eventId2" } }
+                { "id": "indivId1", "fields": { "EventId": "eventId2" } },
+                { "id": "indivId2", "fields": { "EventId": "eventId3" } },
+                { "id": "indivId3", "fields": { "EventId": "eventId3" } }
             ]
         });
 

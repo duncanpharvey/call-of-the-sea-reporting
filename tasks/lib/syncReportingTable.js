@@ -13,7 +13,7 @@ async function run() {
         await syncReportingTable();
     }
     catch (err) {
-        var message = 'sync reporting table failed: ' + err.stack;
+        var message = 'reporting table sync failed: ' + err.stack;
         utils.Slack.post(message);
         throw new Error(message);
     }

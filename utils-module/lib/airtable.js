@@ -1,4 +1,5 @@
 const Airtable = require('airtable');
+const helper = require('./helper');
 
 var base = new Airtable({ apiKey: process.env.airtable_api_key }).base(process.env.airtable_base_id);
 
@@ -45,10 +46,6 @@ async function getReportingRecords(fields) {
   return sails;
 }
 
-function jsonEqual(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
 async function getReportingDifference() {
   var reportingMap = {};
   var byBoatMap = {};
@@ -59,8 +56,6 @@ async function getReportingDifference() {
     fields: ['ID'],
     filterByFormula: "NOT(XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = '')))"
   }).all();
-
-  // to do: log duplicate eventIds across all by boat and individual sail records
 
   remove = remove.map((record) => { return record.id; });
 
@@ -110,7 +105,7 @@ async function getReportingDifference() {
 
   for (var eventId of Object.keys(byBoatMap)) {
     var byBoatSails = byBoatMap[eventId]
-    if ((eventId in reportingMap) && jsonEqual(byBoatSails, reportingMap[eventId].records)) {
+    if ((eventId in reportingMap) && helper.jsonEqual(byBoatSails, reportingMap[eventId].records)) {
       delete reportingMap[eventId];
     }
     else {
@@ -120,7 +115,7 @@ async function getReportingDifference() {
 
   for (var eventId of Object.keys(byIndividualMap)) {
     var byIndividualSails = byIndividualMap[eventId].sort();
-    if ((eventId in reportingMap) && jsonEqual(byIndividualSails, reportingMap[eventId].records.sort())) {
+    if ((eventId in reportingMap) && helper.jsonEqual(byIndividualSails, reportingMap[eventId].records.sort())) {
       delete reportingMap[eventId];
     }
     else {
@@ -150,9 +145,40 @@ async function deleteReportingRecords(records) {
   }
 }
 
+async function getDuplicateEventIds() {
+  var boatEventIds = new Set();
+  var indivEventIds;
+  var duplicates = new Set();
+
+  await base('By Boat Sails').select({
+    fields: ['EventId'],
+    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+  }).all().then((records) => {
+    records.forEach((record) => {
+      var eventId = record.get('EventId');
+      if (boatEventIds.has(eventId)) {
+        duplicates.add(eventId);
+      }
+      else {
+        boatEventIds.add(eventId);
+      }
+    })
+  });
+
+  await base('By Individual Sails').select({
+    fields: ['EventId'],
+    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+  }).all().then((records) => {
+    indivEventIds = new Set(records.map(record => record.get('EventId')));
+  });
+
+  return Array.from(duplicates.union(boatEventIds.intersection(indivEventIds)));
+}
+
 module.exports = {
   getReportingRecords: getReportingRecords,
   getReportingDifference: getReportingDifference,
   addReportingRecords: addReportingRecords,
-  deleteReportingRecords: deleteReportingRecords
+  deleteReportingRecords: deleteReportingRecords,
+  getDuplicateEventIds: getDuplicateEventIds
 };

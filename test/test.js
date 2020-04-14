@@ -8,11 +8,12 @@ const expect = chai.expect;
 
 const nocks = require('./nocks');
 const tasks = require('../tasks');
+const utils = require('../utils-module');
 const app = require('../app.js');
 
 nock.disableNetConnect();
 nock.emitter.on('no match', (req) => {
-    throw new Error("request not mocked: " + req.method + " " + req.path + " " + req.options.body);
+    throw new Error("request not mocked: " + req.method + " " + req.host + req.path);
 });
 
 function cleanNocks() {
@@ -22,26 +23,122 @@ function cleanNocks() {
     nock.cleanAll();
 }
 
-describe('Job Entry Point', async function () {
+describe('App Start', async function () {
     beforeEach(() => {
+        chai.spy.on(tasks.validateData, 'run');
         chai.spy.on(tasks.syncReportingTable, 'run');
         chai.spy.on(tasks.airtableToGoogleSheets, 'run');
     });
 
     afterEach(() => {
         cleanNocks();
+        chai.spy.restore(tasks.validateData, 'run');
         chai.spy.restore(tasks.syncReportingTable, 'run');
         chai.spy.restore(tasks.airtableToGoogleSheets, 'run');
     });
 
-    it('should call sync reporting table and airtable to google sheets', async function () {
+    it('should call all tasks on app run', async function () {
         nocks.Airtable.get();
         nocks.Google.auth();
         nocks.Google.put();
         nocks.Google.post();
         await app.run();
+        expect(tasks.validateData.run).to.have.been.called.once;
         expect(tasks.syncReportingTable.run).to.have.been.called.once;
         expect(tasks.airtableToGoogleSheets.run).to.have.been.called.once;
+    });
+});
+
+describe('Data Validation', async function () {
+    beforeEach(() => {
+        chai.spy.on(utils.Slack, 'post');
+    });
+
+    afterEach(() => {
+        cleanNocks();
+        chai.spy.restore(utils.Slack, 'post');
+    });
+
+    it('should not post to slack if there are no duplicate eventIds', async function () {
+        nocks.Airtable.byBoatSails({
+            "records": [
+                { "id": "boatId1", "fields": { "EventId": "eventId1" } }
+            ]
+        });
+
+        nocks.Airtable.byIndividualSails({
+            "records": [
+                { "id": "indivId1", "fields": { "EventId": "eventId2" } }
+            ]
+        });
+
+        await tasks.validateData.run();
+        expect(utils.Slack.post).to.not.have.been.called;
+    });
+
+    it('should post to slack if there are duplicate by boat sail eventIds', async function () {
+        nocks.Airtable.byBoatSails({
+            "records": [
+                { "id": "boatId1", "fields": { "EventId": "eventId1" } },
+                { "id": "boatId2", "fields": { "EventId": "eventId1" } }
+            ]
+        });
+
+        nocks.Airtable.byIndividualSails({ "records": [] });
+
+        await tasks.validateData.run();
+        expect(utils.Slack.post).to.have.been.called.once.with.exactly('duplicate eventIds: ["eventId1"]');
+    });
+
+    it('should not post to slack if there are duplicate by individual sail eventIds', async function () {
+        nocks.Airtable.byBoatSails({ "records": [] });
+
+        nocks.Airtable.byIndividualSails({
+            "records": [
+                { "id": "indivId1", "fields": { "EventId": "eventId1" } },
+                { "id": "indivId2", "fields": { "EventId": "eventId1" } }
+            ]
+        });
+
+        await tasks.validateData.run();
+        expect(utils.Slack.post).to.not.have.been.called;
+    });
+
+    it('should post to slack if there are duplicate eventIds across by boat sails and by individual sails', async function () {
+        nocks.Airtable.byBoatSails({
+            "records": [
+                { "id": "boatId1", "fields": { "EventId": "eventId1" } }
+            ]
+        });
+
+        nocks.Airtable.byIndividualSails({
+            "records": [
+                { "id": "indivId1", "fields": { "EventId": "eventId1" } }
+            ]
+        });
+
+        await tasks.validateData.run();
+        expect(utils.Slack.post).to.have.been.called.once.with.exactly('duplicate eventIds: ["eventId1"]');
+    });
+
+    it('should post to slack if there are duplicate eventIds within by boat sails and across by boat sails and by individual sails', async function () {
+        nocks.Airtable.byBoatSails({
+            "records": [
+                { "id": "boatId1", "fields": { "EventId": "eventId1" } },
+                { "id": "boatId2", "fields": { "EventId": "eventId1" } },
+                { "id": "boatId3", "fields": { "EventId": "eventId2" } }
+            ]
+        });
+
+        nocks.Airtable.byIndividualSails({
+            "records": [
+                { "id": "indivId1", "fields": { "EventId": "eventId1" } },
+                { "id": "indivId2", "fields": { "EventId": "eventId2" } }
+            ]
+        });
+
+        await tasks.validateData.run();
+        expect(utils.Slack.post).to.have.been.called.once.with.exactly('duplicate eventIds: ["eventId1","eventId2"]');
     });
 });
 

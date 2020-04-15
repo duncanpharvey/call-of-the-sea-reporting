@@ -23,7 +23,7 @@ function getAttendeeDifference(eventbriteAttendees, airtableAttendees) {
     }
   }
 
-  var cancel = Object.keys(airtableAttendees).map((attendeeId) => { return { 'id': airtableAttendees[attendeeId].id, 'fields': { 'Status': 'Cancelled', 'CancellationReason': 'Cancelled in Eventbrite, updated via script' } }; });
+  var cancel = Object.keys(airtableAttendees).map((attendeeId) => { return { 'id': airtableAttendees[attendeeId].id, 'fields': { 'Status': 'Cancelled', 'CancellationReason': 'Cancelled in Eventbrite, airtable record updated via script' } }; });
 
   return { add: add, cancel: cancel };
 }

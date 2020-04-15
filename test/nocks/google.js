@@ -28,21 +28,21 @@ function auth() {
 
 function freezeSheet() {
     nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
-        .post('/v4/spreadsheets/' + process.env.google_spreadsheet_id + ':batchUpdate', { "requests": [{ "updateSheetProperties": { "properties": { "sheetId": process.env.google_sheet_id, "gridProperties": { "frozenColumnCount": 1, "frozenRowCount": 1 } }, "fields": "gridProperties(frozenRowCount, frozenColumnCount)" } }] })
+        .post(`/v4/spreadsheets/${process.env.google_spreadsheet_id}:batchUpdate`, { "requests": [{ "updateSheetProperties": { "properties": { "sheetId": process.env.google_sheet_id, "gridProperties": { "frozenColumnCount": 1, "frozenRowCount": 1 } }, "fields": "gridProperties(frozenRowCount, frozenColumnCount)" } }] })
         .query({ "spreadsheetId": process.env.google_spreadsheet_id })
         .reply(200);
 }
 
 function clearSheet() {
     nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
-        .post('/v4/spreadsheets/' + process.env.google_spreadsheet_id + '/values/' + process.env.google_sheet_name + ':clear')
+        .post(`/v4/spreadsheets/${process.env.google_spreadsheet_id}/values/${process.env.google_sheet_name}:clear`)
         .query({ "spreadsheetId": process.env.google_spreadsheet_id })
         .reply(200);
 }
 
 function updateSheet(request) {
     nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
-        .put('/v4/spreadsheets/' + process.env.google_spreadsheet_id + '/values/' + process.env.google_sheet_name, request)
+        .put(`/v4/spreadsheets/${process.env.google_spreadsheet_id}/values/${process.env.google_sheet_name}`, request)
         .query({ "spreadsheetId": process.env.google_spreadsheet_id, "valueInputOption": "USER_ENTERED" })
         .reply(200);
 }

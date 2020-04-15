@@ -9,7 +9,7 @@ function post(message) {
     channel: process.env.slack_channel,
     text: message,
   }, function (err, response) {
-    if (err) { console.log('failed to post message to slack: ' + err); }
+    if (err) { console.log(`failed to post message to slack: ${err}`); }
   });
 }
 

@@ -13,7 +13,7 @@ const app = require('../app.js');
 
 nock.disableNetConnect();
 nock.emitter.on('no match', (req) => {
-    throw new Error("request not mocked: " + req.method + " " + req.host + req.path);
+    throw new Error(`request not mocked: ${req.method} ${req.host} ${req.path}`);
 });
 
 function cleanNocks() {

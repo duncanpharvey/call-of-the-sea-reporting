@@ -145,6 +145,14 @@ async function deleteReportingRecords(records) {
   }
 }
 
+async function updateByIndividualRecords(records) {
+  var i, n, tempArr, chunk = 10;
+  for (i = 0, n = records.length; i < n; i += chunk) {
+    tempArr = records.slice(i, i + chunk);
+    base('By Individual Sails').update(tempArr);
+  }
+}
+
 async function getDuplicateEventIds() {
   var boatEventIds = new Set();
   var indivEventIds;
@@ -175,10 +183,32 @@ async function getDuplicateEventIds() {
   return Array.from(duplicates.union(boatEventIds.intersection(indivEventIds)));
 }
 
+async function getEventbriteRecords(getPast) {
+  var attendeeMap = {};
+  var formula = "AND(NOT({EventbriteAttendeeId} = ''), NOT({EventbriteEventId} = ''), NOT({Status} = 'Cancelled'))";
+
+  if (!getPast) {
+    formula = `AND(${formula}, OR(IS_SAME({DisembarkingDate}, TODAY(), 'day'), IS_AFTER({DisembarkingDate}, TODAY())))`;
+  }
+
+  await base('By Individual Sails').select({
+    fields: ['EventbriteEventId', 'EventbriteAttendeeId'],
+    filterByFormula: formula
+  }).all().then((records) => {
+    records.forEach((record) => {
+      attendeeMap[record.get('EventbriteAttendeeId')] = { 'id': record.id, 'eventId': record.get('EventbriteEventId') };
+    })
+  });
+
+  return attendeeMap;
+}
+
 module.exports = {
   getReportingRecords: getReportingRecords,
   getReportingDifference: getReportingDifference,
   addReportingRecords: addReportingRecords,
   deleteReportingRecords: deleteReportingRecords,
-  getDuplicateEventIds: getDuplicateEventIds
+  updateByIndividualRecords: updateByIndividualRecords,
+  getDuplicateEventIds: getDuplicateEventIds,
+  getEventbriteRecords: getEventbriteRecords
 };

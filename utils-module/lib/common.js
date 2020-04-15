@@ -11,6 +11,24 @@ function mapFromAirtableToGoogle(records, fields) {
   return result;
 }
 
+function getAttendeeDifference(eventbriteAttendees, airtableAttendees) {
+  var add = [];
+  for (var attendeeId of Object.keys(eventbriteAttendees)) {
+    var eventId = eventbriteAttendees[attendeeId];
+    if (attendeeId in airtableAttendees && eventId == airtableAttendees[attendeeId].eventId) {
+      delete airtableAttendees[attendeeId];
+    }
+    else {
+      add.push({ 'attendeeId': attendeeId, 'eventId': eventId }); // adds currently handled by Zapier
+    }
+  }
+
+  var cancel = Object.keys(airtableAttendees).map((attendeeId) => { return { 'id': airtableAttendees[attendeeId].id, 'fields': { 'Status': 'Cancelled', 'CancellationReason': 'Cancelled in Eventbrite, updated via script' } }; });
+
+  return { add: add, cancel: cancel };
+}
+
 module.exports = {
-  mapFromAirtableToGoogle: mapFromAirtableToGoogle
+  mapFromAirtableToGoogle: mapFromAirtableToGoogle,
+  getAttendeeDifference: getAttendeeDifference
 };

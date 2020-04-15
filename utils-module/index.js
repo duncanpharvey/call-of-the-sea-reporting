@@ -1,6 +1,7 @@
 module.exports = {
     Airtable: require('./lib/airtable'),
-    Google: require('./lib/google'),
     Common: require('./lib/common'),
-    Slack: require('./lib/slack')
+    Eventbrite: require('./lib/eventbrite'),
+    Google: require('./lib/google'),
+    Slack: require('./lib/slack'),
 };

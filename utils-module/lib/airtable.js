@@ -9,6 +9,7 @@ async function getReportingRecords(fields) {
   var boats = await base('By Boat Sails').select({
     fields: ['Sail_Id']
   }).all();
+
   boats.forEach((boat) => {
     idMap[boat.id] = boat.get('Sail_Id');
   });
@@ -16,6 +17,7 @@ async function getReportingRecords(fields) {
   var participants = await base('By Individual Sails').select({
     fields: ['Participant_Id']
   }).all();
+
   participants.forEach((participant) => {
     idMap[participant.id] = participant.get('Participant_Id');
   });
@@ -133,7 +135,7 @@ async function addReportingRecords(records) {
   var i, n, tempArr, chunk = 10;
   for (i = 0, n = records.length; i < n; i += chunk) {
     tempArr = records.slice(i, i + chunk);
-    base('Reporting').create(tempArr);
+    await base('Reporting').create(tempArr);
   }
 }
 
@@ -141,7 +143,7 @@ async function deleteReportingRecords(records) {
   var i, n, tempArr, chunk = 10;
   for (i = 0, n = records.length; i < n; i += chunk) {
     tempArr = records.slice(i, i + chunk);
-    base('Reporting').destroy(tempArr);
+    await base('Reporting').destroy(tempArr);
   }
 }
 
@@ -149,7 +151,7 @@ async function updateByIndividualRecords(records) {
   var i, n, tempArr, chunk = 10;
   for (i = 0, n = records.length; i < n; i += chunk) {
     tempArr = records.slice(i, i + chunk);
-    base('By Individual Sails').update(tempArr);
+    await base('By Individual Sails').update(tempArr);
   }
 }
 

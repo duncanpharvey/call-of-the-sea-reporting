@@ -9,71 +9,90 @@ function get() {
 }
 
 function linkedReportingRecordsAllFields(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/Reporting`)
-        .query({ "fields%5B%5D": process.env.fields.split(', '), "filterByFormula": "XOR%28NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29%2C%20NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29%29", "sort%5B0%5D%5Bfield%5D": "ID", "sort%5B0%5D%5Bdirection%5D": "asc" })
-        .reply(200, response);
+        .query({
+            "fields[]": process.env.fields.split(', '),
+            "filterByFormula": "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))",
+            "sort": [{ "field": "ID", "direction": "asc" }]
+        })
+        .reply(200, { "records": response });
 }
 
 function byBoatSailIds(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/By%20Boat%20Sails`)
-        .query({ "fields%5B%5D": "Sail_Id" })
-        .reply(200, response);
+        .query({ "fields[]": "Sail_Id" })
+        .reply(200, { "records": response });
 }
 
 function byIndividualSailIds(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/By%20Individual%20Sails`)
-        .query({ "fields%5B%5D": "Participant_Id" })
-        .reply(200, response);
+        .query({ "fields[]": "Participant_Id" })
+        .reply(200, { "records": response });
 }
 
 function unlinkedReportingRecords(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/Reporting`)
-        .query({ "fields%5B%5D": "ID", "filterByFormula": "NOT%28XOR%28NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29%2C%20NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29%29%29" })
-        .reply(200, response);
+        .query({
+            "fields[]": "ID",
+            "filterByFormula": "NOT(XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = '')))"
+        })
+        .reply(200, { "records": response });
 }
 
 function linkedReportingRecords(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/Reporting`)
-        .query({ "fields%5B%5D": ["EventId", "ByBoatSails", "ByIndividualSails"], "filterByFormula": "XOR%28NOT%28%7BByBoatSails%7D%20%3D%20%27%27%29%2C%20NOT%28%7BByIndividualSails%7D%20%3D%20%27%27%29%29" })
-        .reply(200, response);
+        .query({
+            "fields[]": ["EventId", "ByBoatSails", "ByIndividualSails"],
+            "filterByFormula": "XOR(NOT({ByBoatSails} = ''), NOT({ByIndividualSails} = ''))"
+        })
+        .reply(200, { "records": response });
 }
 
 function byBoatSails(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/By%20Boat%20Sails`)
-        .query({ "fields%5B%5D": "EventId", "filterByFormula": "AND%28NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29%2C%20NOT%28%7BEventId%7D%20%3D%20%27%27%29%29" })
-        .reply(200, response);
+        .query({
+            "fields[]": "EventId",
+            "filterByFormula": "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+        })
+        .reply(200, { "records": response });
 }
 
 function byIndividualSails(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/By%20Individual%20Sails`)
-        .query({ "fields%5B%5D": "EventId", "filterByFormula": "AND%28NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29%2C%20NOT%28%7BEventId%7D%20%3D%20%27%27%29%29" })
-        .reply(200, response);
+        .query({
+            "fields[]": "EventId",
+            "filterByFormula": "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+        })
+        .reply(200, { "records": response });
 }
 
 function addReportingRecords(request, response) {
     nock('https://api.airtable.com:443')
-        .post(`/v0/${process.env.airtable_base_id}/Reporting/`, request)
+        .post(`/v0/${process.env.airtable_base_id}/Reporting/`, { "records": request })
         .query({})
-        .reply(200, response);
+        .reply(200, { "records": response });
 }
 
 function deleteReportingRecords(request, response) {
     nock('https://api.airtable.com:443')
         .delete(`/v0/${process.env.airtable_base_id}/Reporting${request}`)
-        .reply(200, response);
+        .reply(200, { "records": response });
 }
 
 function eventbriteRecords(response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .get(`/v0/${process.env.airtable_base_id}/By%20Individual%20Sails`)
-        .query({ "fields%5B%5D": ["EventbriteEventId", "EventbriteAttendeeId"], "filterByFormula": "AND%28AND%28NOT%28%7BEventbriteAttendeeId%7D%20%3D%20%27%27%29%2C%20NOT%28%7BEventbriteEventId%7D%20%3D%20%27%27%29%2C%20NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29%29%2C%20OR%28IS_SAME%28%7BDisembarkingDate%7D%2C%20TODAY%28%29%2C%20%27day%27%29%2C%20IS_AFTER%28%7BDisembarkingDate%7D%2C%20TODAY%28%29%29%29%29" })
+        .query({
+            "fields[]": ["EventbriteEventId", "EventbriteAttendeeId"],
+            "filterByFormula": "AND(AND(NOT({EventbriteAttendeeId} = ''), NOT({EventbriteEventId} = ''), NOT({Status} = 'Cancelled')), OR(IS_SAME({DisembarkingDate}, TODAY(), 'day'), IS_AFTER({DisembarkingDate}, TODAY())))"
+        })
         .reply(200, { "records": response });
 }
 

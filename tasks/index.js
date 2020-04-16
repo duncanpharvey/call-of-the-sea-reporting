@@ -1,5 +1,5 @@
 module.exports = {
-    airtableToGoogleSheets: require('./lib/airtableToGoogleSheets'),
-    syncReportingTable: require('./lib/syncReportingTable'),
-    validateData: require('./lib/validateData')
+    airtableToGoogleSheets: require('./lib/airtableToGoogleSheets.js'),
+    syncReportingTable: require('./lib/syncReportingTable.js'),
+    validateData: require('./lib/validateData.js')
 };

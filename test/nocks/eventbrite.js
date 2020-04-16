@@ -14,10 +14,10 @@ function getEventsGeneric() {
 function getEvents(events) {
     nock('https://www.eventbriteapi.com:443')
         .get(`/v3/organizations/${process.env.eventbrite_organization_id}/events`)
-        .query(new URLSearchParams({
+        .query({
             status: 'live,started,ended,completed',
             time_filter: 'current_future'
-        }))
+        })
         .reply(200, {
             "pagination": { "has_more_items": false },
             "events": events

@@ -17,7 +17,7 @@ function put() {
 }
 
 function auth() {
-    nock('https://www.googleapis.com:443', { "encodedQueryParams": true })
+    nock('https://www.googleapis.com:443')
         .persist()
         .post('/oauth2/v4/token', {
             "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -27,21 +27,21 @@ function auth() {
 }
 
 function freezeSheet() {
-    nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+    nock('https://sheets.googleapis.com:443')
         .post(`/v4/spreadsheets/${process.env.google_spreadsheet_id}:batchUpdate`, { "requests": [{ "updateSheetProperties": { "properties": { "sheetId": process.env.google_sheet_id, "gridProperties": { "frozenColumnCount": 1, "frozenRowCount": 1 } }, "fields": "gridProperties(frozenRowCount, frozenColumnCount)" } }] })
         .query({ "spreadsheetId": process.env.google_spreadsheet_id })
         .reply(200);
 }
 
 function clearSheet() {
-    nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+    nock('https://sheets.googleapis.com:443')
         .post(`/v4/spreadsheets/${process.env.google_spreadsheet_id}/values/${process.env.google_sheet_name}:clear`)
         .query({ "spreadsheetId": process.env.google_spreadsheet_id })
         .reply(200);
 }
 
 function updateSheet(request) {
-    nock('https://sheets.googleapis.com:443', { "encodedQueryParams": true })
+    nock('https://sheets.googleapis.com:443')
         .put(`/v4/spreadsheets/${process.env.google_spreadsheet_id}/values/${process.env.google_sheet_name}`, request)
         .query({ "spreadsheetId": process.env.google_spreadsheet_id, "valueInputOption": "USER_ENTERED" })
         .reply(200);

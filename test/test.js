@@ -1,4 +1,4 @@
-process.env.NODE_ENV = "test";
+process.env.NODE_ENV = 'test';
 
 const nock = require('nock');
 const chai = require('chai');
@@ -12,9 +12,7 @@ const utils = require('../utils-module');
 const app = require('../app.js');
 
 nock.disableNetConnect();
-nock.emitter.on('no match', (req) => {
-    throw new Error(`request not mocked: ${req.method} ${req.host} ${req.path}`);
-});
+nock.emitter.on('no match', req => {});
 
 function cleanNocks() {
     if (!nock.isDone()) {
@@ -280,10 +278,10 @@ describe('Sync Airtable Reporting Table', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1';
+        var deleteRequest = "?records%5B%5D=reportingId1";
 
         var deleteResponse = [
-            { deleted: true, id: 'reportingId1' }
+            { "deleted": true, "id": "reportingId1" }
         ];
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
@@ -318,11 +316,11 @@ describe('Sync Airtable Reporting Table', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2';
+        var deleteRequest = "?records%5B%5D=reportingId1&records%5B%5D=reportingId2";
 
         var deleteResponse = [
-            { deleted: true, id: 'reportingId1' },
-            { deleted: true, id: 'reportingId2' }
+            { "deleted": true, "id": "reportingId1" },
+            { "deleted": true, "id": "reportingId2" }
         ];
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
@@ -362,12 +360,12 @@ describe('Sync Airtable Reporting Table', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3';
+        var deleteRequest = "?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3";
 
         var deleteResponse = [
-            { deleted: true, id: 'reportingId1' },
-            { deleted: true, id: 'reportingId2' },
-            { deleted: true, id: 'reportingId3' }
+            { "deleted": true, "id": "reportingId1" },
+            { "deleted": true, "id": "reportingId2" },
+            { "deleted": true, "id": "reportingId3" }
         ];
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
@@ -406,10 +404,10 @@ describe('Sync Airtable Reporting Table', async function () {
         nocks.Airtable.byBoatSails([]);
         nocks.Airtable.byIndividualSails([]);
 
-        var deleteRequest = '?records%5B%5D=reportingId1';
+        var deleteRequest = "?records%5B%5D=reportingId1";
 
         var deleteResponse = [
-            { deleted: true, id: 'reportingId1' }
+            { "deleted": true, "id": "reportingId1" }
         ];
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);
@@ -450,14 +448,14 @@ describe('Sync Airtable Reporting Table', async function () {
 
         nocks.Airtable.addReportingRecords(addRequest, addResponse);
 
-        var deleteRequest = '?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3&records%5B%5D=reportingId4&records%5B%5D=reportingId5';
+        var deleteRequest = "?records%5B%5D=reportingId1&records%5B%5D=reportingId2&records%5B%5D=reportingId3&records%5B%5D=reportingId4&records%5B%5D=reportingId5";
 
         var deleteResponse = [
-            { deleted: true, id: 'reportingId1' },
-            { deleted: true, id: 'reportingId2' },
-            { deleted: true, id: 'reportingId3' },
-            { deleted: true, id: 'reportingId4' },
-            { deleted: true, id: 'reportingId5' }
+            { "deleted": true, "id": "reportingId1" },
+            { "deleted": true, "id": "reportingId2" },
+            { "deleted": true, "id": "reportingId3" },
+            { "deleted": true, "id": "reportingId4" },
+            { "deleted": true, "id": "reportingId5" }
         ];
 
         nocks.Airtable.deleteReportingRecords(deleteRequest, deleteResponse);

@@ -38,7 +38,7 @@ describe('App Start', async function () {
     });
 
     it('should call all tasks on app run', async function () {
-        // nocks.Eventbrite.getEvents();
+        nocks.Eventbrite.getEventsGeneric();
         nocks.Airtable.get();
         nocks.Google.auth();
         nocks.Google.put();
@@ -143,21 +143,69 @@ describe('Data Validation', async function () {
             expect(utils.Slack.post).to.have.been.called.once.with.exactly('duplicate eventIds: ["eventId1","eventId2"]');
         });
     });
-    /* 
+
     describe('Eventbrite', async function () {
-        it('should cancel records in airtable if cancelled or not in eventbrite', async function() {
-            
+        it('should cancel records in airtable if cancelled or not in eventbrite', async function () {
+            nocks.Eventbrite.getEvents([
+                { "id": "eventId1" }
+            ]);
+
+            nocks.Eventbrite.getAttendees("eventId1", [
+                { "id": "attendeeId1", "cancelled": true }
+            ]);
+
+            nocks.Airtable.eventbriteRecords([
+                { "id": "participantId1", "fields": { "EventbriteEventId": "eventId1", "EventbriteAttendeeId": "attendeeId1" } },
+                { "id": "participantId2", "fields": { "EventbriteEventId": "eventId1", "EventbriteAttendeeId": "attendeeId2" } }
+            ]);
+
+            updateRequest = [
+                { "id": "participantId1", "fields": { "Status": "Cancelled", "CancellationReason": "Cancelled in Eventbrite, Airtable record updated via script" } },
+                { "id": "participantId2", "fields": { "Status": "Cancelled", "CancellationReason": "Cancelled in Eventbrite, Airtable record updated via script" } }
+            ]
+
+            updateResponse = [
+                { "id": "participantId1" },
+                { "id": "participantId2" }
+            ]
+
+            nocks.Airtable.updateByIndividualSails(updateRequest, updateResponse);
+
+            await tasks.validateData.eventbrite();
         });
 
-        it('should not cancel records in airtable if not cancelled in eventbrite', async function() {
+        it('should not cancel records in airtable if not cancelled in eventbrite', async function () {
+            nocks.Eventbrite.getEvents([
+                { "id": "eventId1" }
+            ]);
 
+            nocks.Eventbrite.getAttendees("eventId1", [
+                { "id": "attendeeId1", "cancelled": false }
+            ]);
+
+            nocks.Airtable.eventbriteRecords([
+                { "id": "participantId1", "fields": { "EventbriteEventId": "eventId1", "EventbriteAttendeeId": "attendeeId1" } }
+            ]);
+
+            await tasks.validateData.eventbrite();
         });
 
-        it('should post to slack if eventbrite records need to be added to airtable', async function() {
+        it('should post to slack if eventbrite records need to be added to airtable', async function () {
+            nocks.Eventbrite.getEvents([
+                { "id": "eventId1" }
+            ]);
 
+            nocks.Eventbrite.getAttendees("eventId1", [
+                { "id": "attendeeId1", "cancelled": false }
+            ]);
+
+            nocks.Airtable.eventbriteRecords([]);
+
+            await tasks.validateData.eventbrite();
+            expect(utils.Slack.post).to.have.been.called.once.with.exactly('eventbrite attendees that should be added to airtable: [{"attendeeId":"attendeeId1","eventId":"eventId1"}]');
         });
     });
-    */
+
 });
 
 describe('Airtable to Google Sheets', async function () {

@@ -58,16 +58,30 @@ function byIndividualSails(response) {
 }
 
 function addReportingRecords(request, response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .post(`/v0/${process.env.airtable_base_id}/Reporting/`, request)
         .query({})
         .reply(200, response);
 }
 
 function deleteReportingRecords(request, response) {
-    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+    nock('https://api.airtable.com:443')
         .delete(`/v0/${process.env.airtable_base_id}/Reporting${request}`)
         .reply(200, response);
+}
+
+function eventbriteRecords(response) {
+    nock('https://api.airtable.com:443', { "encodedQueryParams": true })
+        .get(`/v0/${process.env.airtable_base_id}/By%20Individual%20Sails`)
+        .query({ "fields%5B%5D": ["EventbriteEventId", "EventbriteAttendeeId"], "filterByFormula": "AND%28AND%28NOT%28%7BEventbriteAttendeeId%7D%20%3D%20%27%27%29%2C%20NOT%28%7BEventbriteEventId%7D%20%3D%20%27%27%29%2C%20NOT%28%7BStatus%7D%20%3D%20%27Cancelled%27%29%29%2C%20OR%28IS_SAME%28%7BDisembarkingDate%7D%2C%20TODAY%28%29%2C%20%27day%27%29%2C%20IS_AFTER%28%7BDisembarkingDate%7D%2C%20TODAY%28%29%29%29%29" })
+        .reply(200, { "records": response });
+}
+
+function updateByIndividualSails(request, response) {
+    nock('https://api.airtable.com:443')
+        .patch(`/v0/${process.env.airtable_base_id}/By%20Individual%20Sails/`, { "records": request })
+        .query({})
+        .reply(200, { "records": response });
 }
 
 module.exports = {
@@ -80,5 +94,7 @@ module.exports = {
     byBoatSails: byBoatSails,
     byIndividualSails: byIndividualSails,
     addReportingRecords: addReportingRecords,
-    deleteReportingRecords: deleteReportingRecords
+    deleteReportingRecords: deleteReportingRecords,
+    eventbriteRecords: eventbriteRecords,
+    updateByIndividualSails: updateByIndividualSails
 };

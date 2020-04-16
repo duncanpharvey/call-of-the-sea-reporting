@@ -1,40 +1,40 @@
 const nock = require('nock');
 
-function getEvents() {
+function getEventsGeneric() {
     nock('https://www.eventbriteapi.com:443')
         .persist()
         .get(/events$/)
         .query(true)
         .reply(200, {
-            "pagination": {
-                "object_count": 1,
-                "page_number": 1,
-                "page_size": 50,
-                "page_count": 1,
-                "has_more_items": false
-            },
+            "pagination": { "has_more_items": false },
             "events": []
         });
 }
 
-function getAttendees() {
+function getEvents(events) {
     nock('https://www.eventbriteapi.com:443')
-        .persist()
-        .get(/attendees$/)
-        .query(true)
+        .get(`/v3/organizations/${process.env.eventbrite_organization_id}/events`)
+        .query(new URLSearchParams({
+            status: 'live,started,ended,completed',
+            time_filter: 'current_future'
+        }))
         .reply(200, {
-            "pagination": {
-                "object_count": 1,
-                "page_number": 1,
-                "page_size": 50,
-                "page_count": 1,
-                "has_more_items": false
-            },
-            "attendees": []
+            "pagination": { "has_more_items": false },
+            "events": events
+        });
+}
+
+function getAttendees(eventId, attendees) {
+    nock('https://www.eventbriteapi.com:443')
+        .get(`/v3/events/${eventId}/attendees`)
+        .reply(200, {
+            "pagination": { "has_more_items": false },
+            "attendees": attendees
         });
 }
 
 module.exports = {
-    getAttendees: getAttendees,
-    getEvents: getEvents
+    getEventsGeneric: getEventsGeneric,
+    getEvents: getEvents,
+    getAttendees: getAttendees
 };

@@ -18,13 +18,14 @@ async function eventbrite(checkPast) {
     var results = utils.Common.getAttendeeDifference(eventbriteAttendees, airtableAttendees);
     if (results.add.length > 0) utils.Slack.post(`eventbrite attendees that should be added to airtable: ${JSON.stringify(results.add)}`);
     if (results.cancel.length > 0) utils.Slack.post(`cancelling in airtable: ${JSON.stringify(results.cancel)}`);
+    await utils.Airtable.updateByIndividualRecords(results.cancel);
 }
 
 async function run() {
     try {
         await duplicateEventIds();
         var checkPast = false; // save time by only checking future eventbrite records
-        // await eventbrite(checkPast);
+        await eventbrite(checkPast);
     }
     catch (err) {
         var message = `data validation failed: ${err.stack}`;

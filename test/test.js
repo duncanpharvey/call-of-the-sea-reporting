@@ -172,7 +172,7 @@ describe('Data Validation', async function () {
             await tasks.validateData.eventbrite(false);
         });
 
-        it('should post to slack if eventbrite records need to be added to airtable', async function () {
+        it('should not post to slack if eventbrite records need to be added to airtable', async function () {
             nocks.Eventbrite.getEvents([
                 { "id": "eventId1" }
             ]);
@@ -184,7 +184,8 @@ describe('Data Validation', async function () {
             nocks.Airtable.eventbriteRecords([]);
 
             await tasks.validateData.eventbrite(false);
-            expect(utils.Slack.post).to.have.been.called.once.with.exactly('eventbrite attendees that should be added to airtable: [{"attendeeId":"attendeeId1","eventId":"eventId1"}]');
+            // expect(utils.Slack.post).to.have.been.called.once.with.exactly('eventbrite attendees that should be added to airtable: [{"attendeeId":"attendeeId1","eventId":"eventId1"}]');
+            expect(utils.Slack.post).to.not.have.been.called;
         });
     });
 

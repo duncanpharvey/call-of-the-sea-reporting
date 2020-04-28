@@ -16,7 +16,7 @@ async function eventbrite(checkPast) {
     var airtableAttendees = await utils.Airtable.getEventbriteRecords(checkPast);
 
     var results = utils.Common.getAttendeeDifference(eventbriteAttendees, airtableAttendees);
-    if (results.add.length > 0) utils.Slack.post(`eventbrite attendees that should be added to airtable: ${JSON.stringify(results.add)}`);
+    // if (results.add.length > 0) utils.Slack.post(`eventbrite attendees that should be added to airtable: ${JSON.stringify(results.add)}`);
     if (results.cancel.length > 0) utils.Slack.post(`cancelling in airtable: ${JSON.stringify(results.cancel)}`);
     await utils.Airtable.updateByIndividualRecords(results.cancel);
 }

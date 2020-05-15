@@ -58,7 +58,7 @@ function byBoatSails(response) {
         .get(`/v0/${process.env.airtable_base_id}/By%20Boat%20Sails`)
         .query({
             "fields[]": "EventId",
-            "filterByFormula": "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+            "filterByFormula": "NOT({EventId} = '')"
         })
         .reply(200, { "records": response });
 }

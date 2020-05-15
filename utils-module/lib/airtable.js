@@ -80,7 +80,7 @@ async function getReportingDifference() {
 
   await base('By Boat Sails').select({
     fields: ['EventId'],
-    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+    filterByFormula: "NOT({EventId} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
       byBoatMap[record.get('EventId')] = [record.id];
@@ -162,7 +162,7 @@ async function getDuplicateEventIds() {
 
   await base('By Boat Sails').select({
     fields: ['EventId'],
-    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+    filterByFormula: "NOT({EventId} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
       var eventId = record.get('EventId');

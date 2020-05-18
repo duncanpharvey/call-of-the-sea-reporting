@@ -89,7 +89,7 @@ async function getReportingDifference() {
 
   await base('By Individual Sails').select({
     fields: ['EventId'],
-    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+    filterByFormula: "NOT({EventId} = '')"
   }).all().then((records) => {
     records.forEach((record) => {
       var eventId = record.get('EventId');
@@ -177,7 +177,7 @@ async function getDuplicateEventIds() {
 
   await base('By Individual Sails').select({
     fields: ['EventId'],
-    filterByFormula: "AND(NOT({Status} = 'Cancelled'), NOT({EventId} = ''))"
+    filterByFormula: "NOT({EventId} = '')"
   }).all().then((records) => {
     indivEventIds = new Set(records.map(record => record.get('EventId')));
   });

@@ -43,6 +43,7 @@ by individual sails:
 
 both:
 1) no duplicate event ids (vessel + boarding date/time + disembarking date/time)
+2) valid boarding / disembarking dates
 
 capacity:
 days are 0 - 6
@@ -55,7 +56,7 @@ business logic:
 4) weighted capacity depends on vessel and day vs overnight sail
 
 technical notes:
-default value of scheduled assigned in code since insert statement explicitly inserts null value
-make other columns not null?
+name queries to used in prepared statements
+don't log if error
 
 */

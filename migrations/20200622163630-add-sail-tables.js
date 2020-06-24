@@ -22,8 +22,8 @@ exports.up = function(db) {
     boarding_date timestamp,
     disembarking_date timestamp,
 	  status varchar(50) not null,
-    total_cost int,
-	  total_passengers smallint
+    total_cost int not null,
+	  total_passengers smallint not null
   );
 
   create table individual_sails (
@@ -33,7 +33,7 @@ exports.up = function(db) {
   boarding_date timestamp,
   disembarking_date timestamp,
 	status varchar(50) not null,
-  total_cost int
+  total_cost int not null
   );`);
 };
 

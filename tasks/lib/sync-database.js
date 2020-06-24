@@ -3,12 +3,12 @@ const Airtable = require('../../airtable');
 const { addedDiff, deletedDiff, updatedDiff } = require('deep-object-diff');
 
 async function syncCapacity() {
-    var dbCapacity = await Database.Capacity.get();
-    var airtableCapacity = await Airtable.Capacity.get();
+    const dbCapacity = await Database.Capacity.get();
+    const airtableCapacity = await Airtable.Capacity.get();
 
-    var recordsToAdd = addedDiff(dbCapacity, airtableCapacity);
-    var recordsToUpdate = updatedDiff(dbCapacity, airtableCapacity);
-    var recordsToRemove = Object.keys(deletedDiff(dbCapacity, airtableCapacity));
+    const recordsToAdd = addedDiff(dbCapacity, airtableCapacity);
+    const recordsToUpdate = updatedDiff(dbCapacity, airtableCapacity);
+    const recordsToRemove = Object.keys(deletedDiff(dbCapacity, airtableCapacity));
 
     if (Object.keys(recordsToAdd).length > 0) await Database.Capacity.add(recordsToAdd);
     if (Object.keys(recordsToUpdate).length > 0) await Database.Capacity.update(recordsToUpdate);
@@ -16,26 +16,28 @@ async function syncCapacity() {
 }
 
 async function syncBoatSails() {
-    var dbSails = await Database.BoatSails.get();
-    var airtableSails = await Airtable.BoatSails.get();
+    const dbSails = await Database.BoatSails.get();
+    const airtableSails = await Airtable.BoatSails.get();
 
-    var recordsToAdd = addedDiff(dbSails, airtableSails);
-    var recordsToUpdate = updatedDiff(dbSails, airtableSails);
-    var recordsToRemove = Object.keys(deletedDiff(dbSails, airtableSails));
+    const recordsToAdd = addedDiff(dbSails, airtableSails);
+    const recordsToUpdate = updatedDiff(dbSails, airtableSails);
+    const recordsToRemove = Object.keys(deletedDiff(dbSails, airtableSails));
     
     if (Object.keys(recordsToAdd).length > 0) await Database.BoatSails.add(recordsToAdd);
+    if (Object.keys(recordsToUpdate).length > 0) await Database.BoatSails.update(recordsToUpdate);
     if (Object.keys(recordsToRemove).length > 0) await Database.BoatSails.remove(recordsToRemove);
 }
 
 async function syncIndividualSails() {
-    var dbSails = await Database.IndividualSails.get();
-    var airtableSails = await Airtable.IndividualSails.get();
+    const dbSails = await Database.IndividualSails.get();
+    const airtableSails = await Airtable.IndividualSails.get();
 
-    var recordsToAdd = addedDiff(dbSails, airtableSails);
-    var recordsToUpdate = updatedDiff(dbSails, airtableSails);
-    var recordsToRemove = Object.keys(deletedDiff(dbSails, airtableSails));
+    const recordsToAdd = addedDiff(dbSails, airtableSails);
+    const recordsToUpdate = updatedDiff(dbSails, airtableSails);
+    const recordsToRemove = Object.keys(deletedDiff(dbSails, airtableSails));
     
     if (Object.keys(recordsToAdd).length > 0) await Database.IndividualSails.add(recordsToAdd);
+    if (Object.keys(recordsToUpdate).length > 0) await Database.IndividualSails.update(recordsToUpdate);
     if (Object.keys(recordsToRemove).length > 0) await Database.IndividualSails.remove(recordsToRemove);
 }
 

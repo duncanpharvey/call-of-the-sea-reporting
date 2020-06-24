@@ -27,6 +27,7 @@
     "googleapis": "^48.0.0",
     "moment": "^2.27.0",
     "pg": "^8.2.1",
+    "pg-format": "^1.0.4",
     "slack-node": "^0.1.8"
   },
   "devDependencies": {

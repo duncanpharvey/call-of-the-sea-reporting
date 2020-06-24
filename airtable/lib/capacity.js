@@ -1,7 +1,7 @@
 const { base, Slack } = require('../config.js');
 
 async function get() {
-    var capacity = {};
+    const capacity = {};
     await base('Capacity').select({
         fields: ['Id', 'Day', 'Value']
     }).all().then(records => {

@@ -1,17 +1,26 @@
 const { airtableDateFormat, base, moment, Slack } = require('../config.js');
 
 async function get() {
-    var sails = {};
+    const sails = {};
     await base('By Individual Sails').select({
         fields: ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost']
     }).all().then(records => {
         records.forEach(record => {
+            const vesselConductingSail = record.get('VesselConductingSail');
+            const status = record.get('Status');
+            const totalCost = record.get('TotalCost');
+            var boardingDateTime = null;
+            try { boardingDateTime = moment(`${record.get('BoardingDate')} ${record.get('BoardingTime')}`, airtableDateFormat).format(dateFormat); }
+            catch { boardingDateTime = null; }
+            var disembarkingDateTime;
+            try { disembarkingDateTime = moment(`${record.get('DisembarkingDate')} ${record.get('DisembarkingTime')}`, airtableDateFormat).format(dateFormat); }
+            catch { disembarkingDateTime = null; }
             sails[record.id] = {
-                vesselConductingSail: record.get('VesselConductingSail'),
-                boardingDateTime: moment(`${record.get('BoardingDate')} ${record.get('BoardingTime')}`, airtableDateFormat).format(dateFormat),
-                disembarkingDateTime: moment(`${record.get('DisembarkingDate')} ${record.get('DisembarkingTime')}`, airtableDateFormat).format(dateFormat),
-                status: record.get('Status'),
-                totalCost: record.get('TotalCost')
+                vesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+                boardingDateTime: boardingDateTime,
+                disembarkingDateTime: disembarkingDateTime,
+                status: status ? status : 'Scheduled',
+                totalCost: totalCost ? totalCost : 0
             }
         });
     }).catch(err => Slack.post(JSON.stringify(err)));

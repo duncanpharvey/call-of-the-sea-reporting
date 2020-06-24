@@ -21,7 +21,7 @@ exports.up = function(db) {
     vessel_conducting_sail varchar(20) references vessel(name),
     boarding_date timestamp,
     disembarking_date timestamp,
-	  status varchar(50),
+	  status varchar(50) not null,
     total_cost int,
 	  total_passengers smallint
   );
@@ -32,7 +32,7 @@ exports.up = function(db) {
 	vessel_conducting_sail varchar(20) references vessel(name),
   boarding_date timestamp,
   disembarking_date timestamp,
-	status varchar(50),
+	status varchar(50) not null,
   total_cost int
   );`);
 };

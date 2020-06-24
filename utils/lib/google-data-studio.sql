@@ -1,52 +1,3 @@
-create table boat_sails (
-    id serial primary key not null,
-    airtable_id char(17) unique not null,
-    vessel_conducting_sail varchar(20) references vessel(name),
-    boarding_date timestamp,
-    disembarking_date timestamp,
-	status varchar(50),
-    total_cost int,
-	total_passengers smallint
-);
-
-create table individual_sails (
-	id serial primary key not null,
-    airtable_id char(17) unique not null,
-	vessel_conducting_sail varchar(20) references vessel(name),
-    boarding_date timestamp,
-    disembarking_date timestamp,
-	status varchar(50),
-    total_cost int
-);
-
-create table calendar (
-    date date primary key not null
-);
-
-create table capacity (
-    id smallint primary key not null,
-    day varchar(9) not null,
-    value smallint not null
-);
-
-insert into capacity (id, day, value) values (0, 'sunday', 0);
-insert into capacity (id, day, value) values (1, 'monday', 2);
-insert into capacity (id, day, value) values (2, 'tuesday', 2);
-insert into capacity (id, day, value) values (3, 'wednesday', 2);
-insert into capacity (id, day, value) values (4, 'thursday', 2);
-insert into capacity (id, day, value) values (5, 'friday', 3);
-insert into capacity (id, day, value) values (6, 'saturday', 1);
-
-create table vessel (
-	id serial primary key not null,
-	name varchar(20) unique
-);
-
-insert into vessel (name) values ('Seaward');
-insert into vessel (name) values ('Matthew Turner');
-
-----
-
 select cal."date",
 	v."name" as vessel_conducting_sail,
 	sum(s.total_passengers) as total_passengers,
@@ -68,14 +19,14 @@ cross join vessel v
 left join (
 	select 'individual' as "type", i.vessel_conducting_sail, i.boarding_date, i.disembarking_date, sum(i.total_cost) as total_cost, count(i.airtable_id) as total_passengers
 	from individual_sails i
-	where i.status != 'Cancelled' or i.status is null
+	where i.status != 'Cancelled'
 	group by i.vessel_conducting_sail, i.boarding_date, i.disembarking_date
 	
 	union
 	
 	select 'boat' as "type", b.vessel_conducting_sail, b.boarding_date, b.disembarking_date, b.total_cost, b.total_passengers
 	from boat_sails b
-	where b.status != 'Cancelled' or b.status is null
+	where b.status != 'Cancelled'
 ) s on s.boarding_date::date <= cal."date" and cal."date" <= s.disembarking_date::date and v."name" = s.vessel_conducting_sail
 join capacity cap on cap.id = date_part('dow', cal."date")
 group by cal."date", cap.value, v."name"
@@ -91,7 +42,7 @@ by individual sails:
 1) event title - boarding date/time - disembarking date/time same across all participants
 
 both:
-1) no duplicate event ids
+1) no duplicate event ids (vessel + boarding date/time + disembarking date/time)
 
 capacity:
 days are 0 - 6
@@ -104,5 +55,7 @@ business logic:
 4) weighted capacity depends on vessel and day vs overnight sail
 
 technical notes:
+default value of scheduled assigned in code since insert statement explicitly inserts null value
+make other columns not null?
 
 */

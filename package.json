@@ -7,7 +7,7 @@
     "dev": "node -r dotenv/config ./bin/scheduled-job.js",
     "start": "node -r dotenv/config app.js",
     "test": "mocha -r dotenv/config",
-    "sql": "node -r dotenv/config sql.js"
+    "sql": "node -r dotenv/config app2.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,9 @@
   "dependencies": {
     "airtable": "^0.8.1",
     "axios": "^0.19.2",
+    "deep-object-diff": "^1.1.0",
     "googleapis": "^48.0.0",
+    "moment": "^2.27.0",
     "pg": "^8.2.1",
     "slack-node": "^0.1.8"
   },

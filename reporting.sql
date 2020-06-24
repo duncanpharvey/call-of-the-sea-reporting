@@ -47,7 +47,6 @@ insert into vessel (name) values ('Matthew Turner');
 
 ----
 
-
 select cal."date",
 	v."name" as vessel_conducting_sail,
 	sum(s.total_passengers) as total_passengers,
@@ -69,18 +68,18 @@ cross join vessel v
 left join (
 	select 'individual' as "type", i.vessel_conducting_sail, i.boarding_date, i.disembarking_date, sum(i.total_cost) as total_cost, count(i.airtable_id) as total_passengers
 	from individual_sails i
-	where i.status != 'Cancelled'
+	where i.status != 'Cancelled' or i.status is null
 	group by i.vessel_conducting_sail, i.boarding_date, i.disembarking_date
 	
 	union
 	
 	select 'boat' as "type", b.vessel_conducting_sail, b.boarding_date, b.disembarking_date, b.total_cost, b.total_passengers
 	from boat_sails b
-	where b.status != 'Cancelled'
+	where b.status != 'Cancelled' or b.status is null
 ) s on s.boarding_date::date <= cal."date" and cal."date" <= s.disembarking_date::date and v."name" = s.vessel_conducting_sail
 join capacity cap on cap.id = date_part('dow', cal."date")
 group by cal."date", cap.value, v."name"
-order by cal."date", v."name";
+order by cal."date", v."name"; 
 
 
 /*
@@ -94,11 +93,16 @@ by individual sails:
 both:
 1) no duplicate event ids
 
+capacity:
+days are 0 - 6
+
 business logic:
 1) all revenue attributed to first day of sail for multi day sails
 2) sail segment logic assumes multi day programs are overnights. Day programs that start in the afternoon or end in the morning will have an extra sail segment assigned
 	a) change logic to set start/end of sailing day to be 9am - 8:30pm instead of midnight to midnight?
 3) weighted capacity assumes multi day programs have the same capacity as overnight programs (true maybe for pandemic but not otherwise)
 4) weighted capacity depends on vessel and day vs overnight sail
+
+technical notes:
 
 */

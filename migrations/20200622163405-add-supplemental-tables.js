@@ -8,13 +8,13 @@ var seed;
   * We receive the dbmigrate dependency from dbmigrate initially.
   * This enables us to not have to rely on NODE_PATH.
   */
-exports.setup = function(options, seedLink) {
+exports.setup = function (options, seedLink) {
   dbm = options.dbmigrate;
   type = dbm.dataType;
   seed = seedLink;
 };
 
-exports.up = function(db) {
+exports.up = function (db) {
   return db.runSql(`create table calendar (
     date date primary key not null
   );
@@ -34,7 +34,7 @@ exports.up = function(db) {
   insert into vessel (name) values ('Matthew Turner');`);
 };
 
-exports.down = function(db) {
+exports.down = function (db) {
   return db.runSql(`drop table calendar;
   drop table capacity;
   drop table vessel;`);

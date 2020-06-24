@@ -18,8 +18,9 @@ async function get() {
 async function add(records) {
     const sql = { text: 'insert into capacity (id, day, value) values ($1, $2, $3);' }
     for (id of Object.keys(records)) {
-        sql.values = [id, records[id].day, records[id].value];
-        await pool.query(sql).then(Slack.post(`adding capacity ${id}: ${JSON.stringify(records[id])}`)).catch(err => Slack.post(JSON.stringify(err)));
+        const record = records[id];
+        sql.values = [id, record.day, record.value];
+        await pool.query(sql).then(Slack.post(`adding capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
     }
 }
 
@@ -29,7 +30,7 @@ async function update(records) {
         var queryString = '';
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}',`; }
         const sql = format('update capacity set %s where id = %L;', queryString.slice(0, -1), id);
-        await pool.query(sql).then(Slack.post(`updating capacity ${id}: ${JSON.stringify(records[id])}`)).catch(err => Slack.post(JSON.stringify(err)));
+        await pool.query(sql).then(Slack.post(`updating capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
     }
 }
 

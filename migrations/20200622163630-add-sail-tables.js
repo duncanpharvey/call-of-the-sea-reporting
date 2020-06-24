@@ -8,13 +8,13 @@ var seed;
   * We receive the dbmigrate dependency from dbmigrate initially.
   * This enables us to not have to rely on NODE_PATH.
   */
-exports.setup = function(options, seedLink) {
+exports.setup = function (options, seedLink) {
   dbm = options.dbmigrate;
   type = dbm.dataType;
   seed = seedLink;
 };
 
-exports.up = function(db) {
+exports.up = function (db) {
   return db.runSql(`create table boat_sails (
     id serial primary key not null,
     airtable_id char(17) unique not null,
@@ -23,7 +23,12 @@ exports.up = function(db) {
     disembarking_date timestamp,
 	  status varchar(50) not null,
     total_cost int not null,
-	  total_passengers smallint not null
+    scholarship_awarded int not null,
+    paid int not null,
+    outstanding int not null,
+    total_passengers smallint not null,
+    students smallint not null,
+    adults smallint not null
   );
 
   create table individual_sails (
@@ -33,11 +38,14 @@ exports.up = function(db) {
   boarding_date timestamp,
   disembarking_date timestamp,
 	status varchar(50) not null,
-  total_cost int not null
+  total_cost int not null,
+  scholarship_awarded int not null,
+  paid int not null,
+  outstanding int not null
   );`);
 };
 
-exports.down = function(db) {
+exports.down = function (db) {
   return db.runSql(`drop table boat_sails;
     drop table individual_sails;`);
 };

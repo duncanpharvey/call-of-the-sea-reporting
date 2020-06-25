@@ -10,8 +10,8 @@ select cal."date",
 	sum(case
 		when s."type" is null then 0
 		when s."type" = 'boat' then 1
-		when v."name" = 'Seaward' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 40 else 12 end::decimal)
-		when v."name" = 'Matthew Turner' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 70 else 26 end::decimal)
+		when v."name" = 'seaward' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 40 else 12 end::decimal)
+		when v."name" = 'matthew turner' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 70 else 26 end::decimal)
 	end *
 	case
 		when s."type" is null then 0

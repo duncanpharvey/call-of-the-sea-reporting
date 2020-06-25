@@ -6,12 +6,12 @@ async function get() {
     await pool.query(sql).then(res => {
         res.rows.forEach(record => {
             sails[record.airtable_id] = {
-                vesselConductingSail: record.vessel_conducting_sail,
-                boardingDateTime: moment(record.boarding_date, dateFormat).format(dateFormat),
-                disembarkingDateTime: moment(record.disembarking_date, dateFormat).format(dateFormat),
+                vessel_conducting_sail: record.vessel_conducting_sail,
+                boarding_date: moment(record.boarding_date, dateFormat).format(dateFormat),
+                disembarking_date: moment(record.disembarking_date, dateFormat).format(dateFormat),
                 status: record.status,
-                totalCost: record.total_cost,
-                scholarshipAwarded: record.scholarship_awarded,
+                total_cost: record.total_cost,
+                scholarship_awarded: record.scholarship_awarded,
                 paid: record.paid,
                 outstanding: record.outstanding
             }
@@ -42,12 +42,12 @@ async function add(records) {
         const record = records[id];
         sql.values = [
             id,
-            record.vesselConductingSail,
-            record.boardingDateTime,
-            record.disembarkingDateTime,
+            record.vessel_conducting_sail,
+            record.boarding_date,
+            record.disembarking_date,
             record.status,
-            record.totalCost,
-            record.scholarshipAwarded,
+            record.total_cost,
+            record.scholarship_awarded,
             record.paid,
             record.outstanding
         ];

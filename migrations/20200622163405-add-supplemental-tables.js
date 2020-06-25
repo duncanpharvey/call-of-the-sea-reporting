@@ -16,18 +16,24 @@ exports.setup = function (options, seedLink) {
 
 exports.up = function (db) {
   return db.runSql(`create table calendar (
-    date date primary key not null
+    date date primary key not null,
+    created_date_utc timestamp default timezone('utc', now()),
+    modified_date_utc timestamp default timezone('utc', now())
   );
 
   create table capacity (
-      id smallint primary key not null,
-      day varchar(9) not null,
-      value smallint not null
+    id smallint primary key not null,
+    day varchar(9) not null,
+    value smallint not null,
+    created_date_utc timestamp default timezone('utc', now()),
+    modified_date_utc timestamp default timezone('utc', now())
   );
 
   create table vessel (
     id serial primary key not null,
-    name varchar(20) unique not null
+    name varchar(20) unique not null,
+    created_date_utc timestamp default timezone('utc', now()),
+    modified_date_utc timestamp default timezone('utc', now())
   );
 
   insert into vessel (name) values ('Seaward');

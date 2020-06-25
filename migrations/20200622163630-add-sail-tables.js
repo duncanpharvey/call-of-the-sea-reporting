@@ -28,20 +28,24 @@ exports.up = function (db) {
     outstanding int not null,
     total_passengers smallint not null,
     students smallint not null,
-    adults smallint not null
+    adults smallint not null,
+    created_date_utc timestamp default timezone('utc', now()),
+    modified_date_utc timestamp default timezone('utc', now())
   );
 
   create table individual_sails (
-	id serial primary key not null,
-  airtable_id char(17) unique not null,
-	vessel_conducting_sail varchar(20) references vessel(name),
-  boarding_date timestamp,
-  disembarking_date timestamp,
-	status varchar(50) not null,
-  total_cost int not null,
-  scholarship_awarded int not null,
-  paid int not null,
-  outstanding int not null
+    id serial primary key not null,
+    airtable_id char(17) unique not null,
+    vessel_conducting_sail varchar(20) references vessel(name),
+    boarding_date timestamp,
+    disembarking_date timestamp,
+    status varchar(50) not null,
+    total_cost int not null,
+    scholarship_awarded int not null,
+    paid int not null,
+    outstanding int not null,
+    created_date_utc timestamp default timezone('utc', now()),
+    modified_date_utc timestamp default timezone('utc', now())
   );`);
 };
 

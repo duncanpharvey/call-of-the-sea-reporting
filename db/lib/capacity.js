@@ -3,15 +3,14 @@ const { format, pool, Slack } = require('../config.js');
 async function get() {
     const capacity = {};
     const sql = 'select id, day, value from capacity;';
-    await pool.query(sql)
-        .then(res => {
-            res.rows.forEach(record => {
-                capacity[record.id] = {
-                    day: record.day,
-                    value: record.value
-                };
-            });
-        }).catch(err => Slack.post(JSON.stringify(err)));
+    await pool.query(sql).then(res => {
+        res.rows.forEach(record => {
+            capacity[record.id] = {
+                day: record.day,
+                value: record.value
+            };
+        });
+    }).catch(err => Slack.post(JSON.stringify(err)));
     return capacity;
 }
 
@@ -28,8 +27,9 @@ async function update(records) {
     for (id of Object.keys(records)) {
         const record = records[id];
         var queryString = '';
-        for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}',`; }
-        const sql = format('update capacity set %s where id = %L;', queryString.slice(0, -1), id);
+        for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
+        queryString += `modified_date_utc = timezone('utc', now())`;
+        const sql = format('update capacity set %s where id = %L;', queryString, id);
         await pool.query(sql).then(Slack.post(`updating capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
     }
 }

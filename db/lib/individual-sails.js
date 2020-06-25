@@ -59,8 +59,9 @@ async function update(records) {
     for (id of Object.keys(records)) {
         const record = records[id];
         var queryString = '';
-        for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}',`; }
-        const sql = format('update individual_sails set %s where airtable_id = %L;', queryString.slice(0, -1), id);
+        for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
+        queryString += `modified_date_utc = timezone('utc', now())`;
+        const sql = format('update individual_sails set %s where airtable_id = %L;', queryString, id);
         await pool.query(sql).then(Slack.post(`updating individual sail ${id}: ${JSON.stringify(record)}`));
     }
 }

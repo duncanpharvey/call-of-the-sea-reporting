@@ -76,7 +76,7 @@ order by cal."date", v."name";
  days are 0 - 6
  
  business logic:
- 1) all revenue attributed to first day of sail for multi day sails
+ 1) all revenue, scholarships, paid and outstanding amounts attributed to first day of sail for multi day sails
  2) sail segment logic assumes multi day programs are overnights. Day programs that start in the afternoon or end in the morning will have an extra sail segment assigned
  a) change logic to set start/end of sailing day to be 9am - 8:30pm instead of midnight to midnight?
  3) weighted capacity assumes multi day programs have the same capacity as overnight programs (true maybe for pandemic but not otherwise)
@@ -84,8 +84,8 @@ order by cal."date", v."name";
  5) add adults and students to by individual sails
  
  technical notes:
- name queries to used in prepared statements
+ name queries to use in prepared statements
  don't log if error
- update sql query to group by Cancelled / not cancelled to be able to filter in reports -> use separate data source
+ use separate data sources for cancelled sails, not cancelled sails, or all sails with any status
  
  */

@@ -6,12 +6,14 @@ async function get() {
         fields: ['Id', 'Day', 'Value']
     }).all().then(records => {
         records.forEach(record => {
+            const day = record.get('Day');
+            const value = record.get('Value');
             capacity[record.get('Id')] = {
-                day: record.get('Day').toLowerCase(),
-                value: record.get('Value')
+                day: day ? day.toLowerCase() : null,
+                value: value ? value: 0
             };
         })
-    }).catch(err => Slack.post(JSON.stringify(err)));
+    }).catch(err => Slack.post(err));
     return capacity;
 }
 

@@ -35,7 +35,7 @@ left join (
 			0 as students,
 			0 as adults
 		from individual_sails i
-		where i.status != 'Cancelled'
+		where i.status != 'cancelled'
 		group by i.vessel_conducting_sail,
 			i.boarding_date,
 			i.disembarking_date
@@ -54,7 +54,7 @@ left join (
 			b.students,
 			b.adults
 		from boat_sails b
-		where b.status != 'Cancelled'
+		where b.status != 'cancelled'
 	) s on s.boarding_date::date <= cal."date" and cal."date" <= s.disembarking_date::date and v."name" = s.vessel_conducting_sail
 join capacity cap on cap.id = date_part('dow', cal."date")
 group by cal."date", cap.value, v."name"
@@ -86,7 +86,6 @@ order by cal."date", v."name";
  technical notes:
  name queries to used in prepared statements
  don't log if error
- update sql query to group by Cancelled / not cancelled to be able to filter in reports
- add createddate and modified date columns
+ update sql query to group by Cancelled / not cancelled to be able to filter in reports -> use separate data source
  
  */

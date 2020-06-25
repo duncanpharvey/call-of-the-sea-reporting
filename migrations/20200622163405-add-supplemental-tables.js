@@ -36,8 +36,8 @@ exports.up = function (db) {
     modified_date_utc timestamp default timezone('utc', now())
   );
 
-  insert into vessel (name) values ('Seaward');
-  insert into vessel (name) values ('Matthew Turner');`);
+  insert into vessel (name) values ('seaward');
+  insert into vessel (name) values ('matthew turner');`);
 };
 
 exports.down = function (db) {

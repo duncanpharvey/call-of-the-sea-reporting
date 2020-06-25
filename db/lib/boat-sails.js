@@ -19,7 +19,7 @@ async function get() {
                 adults: record.adults
             }
         });
-    }).catch(err => Slack.post(JSON.stringify(err)));
+    }).catch(err => Slack.post(err));
     return sails;
 }
 
@@ -60,7 +60,7 @@ async function add(records) {
             record.students,
             record.adults
         ];
-        await pool.query(sql).then(Slack.post(`adding boat sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
+        await pool.query(sql).then(Slack.post(`adding boat sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -71,7 +71,7 @@ async function update(records) {
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
         queryString += `modified_date_utc = timezone('utc', now())`;
         const sql = format('update boat_sails set %s where airtable_id = %L;', queryString, id);
-        await pool.query(sql).then(Slack.post(`updating boat sail ${id}: ${JSON.stringify(record)}`));
+        await pool.query(sql).then(Slack.post(`updating boat sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -80,7 +80,7 @@ async function remove(records) {
         text: 'delete from boat_sails where airtable_id = ANY($1);',
         values: [records]
     };
-    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(JSON.stringify(err)));
+    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
 }
 
 module.exports = {

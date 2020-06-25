@@ -16,7 +16,7 @@ async function get() {
                 outstanding: record.outstanding
             }
         });
-    }).catch(err => Slack.post(JSON.stringify(err)));
+    }).catch(err => Slack.post(err));
     return sails;
 }
 
@@ -51,7 +51,7 @@ async function add(records) {
             record.paid,
             record.outstanding
         ];
-        await pool.query(sql).then(Slack.post(`adding individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
+        await pool.query(sql).then(Slack.post(`adding individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -62,7 +62,7 @@ async function update(records) {
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
         queryString += `modified_date_utc = timezone('utc', now())`;
         const sql = format('update individual_sails set %s where airtable_id = %L;', queryString, id);
-        await pool.query(sql).then(Slack.post(`updating individual sail ${id}: ${JSON.stringify(record)}`));
+        await pool.query(sql).then(Slack.post(`updating individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -71,7 +71,7 @@ async function remove(records) {
         text: 'delete from individual_sails where airtable_id = ANY($1);',
         values: [records]
     };
-    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(JSON.stringify(err)));
+    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
 }
 
 module.exports = {

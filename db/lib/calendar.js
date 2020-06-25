@@ -12,7 +12,7 @@ async function update() {
     check_date := check_date + INTERVAL '1 day';
     end loop;
     end $$;`;
-    await pool.query(sql).catch(err => Slack.post(JSON.stringify(err)));
+    await pool.query(sql).catch(err => Slack.post(err));
 }
 
 module.exports = {

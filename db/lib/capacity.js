@@ -10,7 +10,7 @@ async function get() {
                 value: record.value
             };
         });
-    }).catch(err => Slack.post(JSON.stringify(err)));
+    }).catch(err => Slack.post(err));
     return capacity;
 }
 
@@ -19,7 +19,7 @@ async function add(records) {
     for (id of Object.keys(records)) {
         const record = records[id];
         sql.values = [id, record.day, record.value];
-        await pool.query(sql).then(Slack.post(`adding capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
+        await pool.query(sql).then(Slack.post(`adding capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -30,7 +30,7 @@ async function update(records) {
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
         queryString += `modified_date_utc = timezone('utc', now())`;
         const sql = format('update capacity set %s where id = %L;', queryString, id);
-        await pool.query(sql).then(Slack.post(`updating capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(JSON.stringify(err)));
+        await pool.query(sql).then(Slack.post(`updating capacity ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -39,7 +39,7 @@ async function remove(records) {
         text: 'delete from capacity where id = ANY($1);',
         values: [records]
     }
-    await pool.query(sql).then(Slack.post(`removing capacities ${JSON.stringify(records)}`)).catch(err => Slack.post(JSON.stringify(err)));
+    await pool.query(sql).then(Slack.post(`removing capacities ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
 }
 
 module.exports = {

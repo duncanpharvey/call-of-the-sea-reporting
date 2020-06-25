@@ -19,17 +19,17 @@ async function get() {
             try { disembarkingDateTime = moment(`${record.get('DisembarkingDate')} ${record.get('DisembarkingTime')}`, airtableDateFormat).format(dateFormat); }
             catch { disembarkingDateTime = null; }
             sails[record.id] = {
-                vesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+                vesselConductingSail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
                 boardingDateTime: boardingDateTime,
                 disembarkingDateTime: disembarkingDateTime,
-                status: status ? status : 'Scheduled',
+                status: status ? status.toLowerCase() : 'scheduled',
                 totalCost: totalCost ? totalCost : 0,
                 scholarshipAwarded: scholarshipAwarded ? scholarshipAwarded : 0,
                 paid: paid ? paid : 0,
                 outstanding: outstanding ? outstanding : 0
             }
         });
-    }).catch(err => Slack.post(JSON.stringify(err)));
+    }).catch(err => Slack.post(err));
     return sails;
 }
 

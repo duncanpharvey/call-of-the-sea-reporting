@@ -1,9 +1,8 @@
 var Slack = require('slack-node');
 
-slack = new Slack();
-slack.setWebhook(process.env.slack_webhook_url);
-
 function post(message) {
+  slack = new Slack();
+  slack.setWebhook(process.env.slack_postgres_webhook_url);
   if (process.env.NODE_ENV == "test") return;
   console.log(message);
   slack.webhook({

@@ -71,7 +71,7 @@ async function remove(records) {
         text: 'delete from individual_sails where airtable_id = ANY($1);',
         values: [records]
     };
-    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
+    await pool.query(sql).then(Slack.post(`removing individual sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
 }
 
 module.exports = {

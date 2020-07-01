@@ -1,5 +1,7 @@
 const { airtableDateFormat, base, moment, Slack } = require('../config.js');
 
+// todo: set record order for airtable, eventbrite, and db api
+
 async function get() {
     const sails = {};
     await base('By Individual Sails').select({

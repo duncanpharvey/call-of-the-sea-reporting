@@ -1,5 +1,5 @@
 const Airtable = require('airtable');
-const { Slack } = require('../utils');
+const { Slack } = require('../../utils');
 
 module.exports = {
     airtableDateFormat: 'YYYY-MM-DD h:mm a',

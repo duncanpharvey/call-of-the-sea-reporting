@@ -1,11 +1,10 @@
 const tasks = require('./tasks');
 
-async function run() {
-    await tasks.validateData.run();
-    await tasks.syncReportingTable.run();
-    await tasks.airtableToGoogleSheets.run();
+async function main() {
+    global.dateFormat = 'YYYY-MM-DD HH:mm:ss';
+    await tasks.SyncDatabase.main();
 }
 
 module.exports = {
-    run: run
+    main: main
 };

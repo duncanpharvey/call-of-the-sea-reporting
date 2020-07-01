@@ -1,8 +1,8 @@
-const { format, moment, pool, Slack } = require('../config.js');
+const { format, moment, pool, Query, Slack } = require('../config.js');
 
 async function get() {
     const sails = {};
-    const sql = 'select airtable_id, vessel_conducting_sail, boarding_date, disembarking_date, status, total_cost, scholarship_awarded, paid, outstanding, total_passengers, students, adults from boat_sails;';
+    const sql = Query.IndividualSails.get;
     await pool.query(sql).then(res => {
         res.rows.forEach(record => {
             sails[record.airtable_id] = {
@@ -13,10 +13,7 @@ async function get() {
                 total_cost: record.total_cost,
                 scholarship_awarded: record.scholarship_awarded,
                 paid: record.paid,
-                outstanding: record.outstanding,
-                total_passengers: record.total_passengers,
-                students: record.students,
-                adults: record.adults
+                outstanding: record.outstanding
             }
         });
     }).catch(err => Slack.post(err));
@@ -25,20 +22,7 @@ async function get() {
 
 async function add(records) {
     const sql = {
-        text: `insert into boat_sails (
-            airtable_id,
-            vessel_conducting_sail,
-            boarding_date,
-            disembarking_date,
-            status,
-            total_cost,
-            scholarship_awarded,
-            paid,
-            outstanding,
-            total_passengers,
-            students,
-            adults
-            ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`
+        text: Query.IndividualSails.add
     };
     for (id of Object.keys(records)) {
         if (id.length != 17 || id.slice(0, 3) != 'rec') {
@@ -55,12 +39,9 @@ async function add(records) {
             record.total_cost,
             record.scholarship_awarded,
             record.paid,
-            record.outstanding,
-            record.total_passengers,
-            record.students,
-            record.adults
+            record.outstanding
         ];
-        await pool.query(sql).then(Slack.post(`adding boat sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
+        await pool.query(sql).then(Slack.post(`adding individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
@@ -70,17 +51,17 @@ async function update(records) {
         var queryString = '';
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
         queryString += `modified_date_utc = timezone('utc', now())`;
-        const sql = format('update boat_sails set %s where airtable_id = %L;', queryString, id);
-        await pool.query(sql).then(Slack.post(`updating boat sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
+        const sql = format(Query.IndividualSails.update, queryString, id);
+        await pool.query(sql).then(Slack.post(`updating individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
 async function remove(records) {
     const sql = {
-        text: 'delete from boat_sails where airtable_id = ANY($1);',
+        text: Query.IndividualSails.remove,
         values: [records]
     };
-    await pool.query(sql).then(Slack.post(`removing boat sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
+    await pool.query(sql).then(Slack.post(`removing individual sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));
 }
 
 module.exports = {

@@ -3,9 +3,7 @@ const { addedDiff, deletedDiff, updatedDiff } = require('deep-object-diff');
 
 async function syncCapacity() {
     const dbCapacity = await Database.Capacity.get();
-    console.log('db capacity' + JSON.stringify(dbCapacity));
     const airtableCapacity = await Airtable.Capacity.get();
-    console.log('airtable capacity' + JSON.stringify(airtableCapacity));
 
     const recordsToAdd = addedDiff(dbCapacity, airtableCapacity);
     const recordsToUpdate = updatedDiff(dbCapacity, airtableCapacity);

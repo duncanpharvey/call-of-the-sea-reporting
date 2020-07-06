@@ -2,4 +2,4 @@
 
 ## Background
 
-The goal of this project is to get sail registration data from various sources (Airtable, Eventbrite) into a Google Data Studio Dashboard via a PostgreSQL database.
+The goal of this project is to get sail registration data from Airtable into a Google Data Studio Dashboard via a PostgreSQL database.

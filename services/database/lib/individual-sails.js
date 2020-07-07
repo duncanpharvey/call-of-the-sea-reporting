@@ -1,10 +1,10 @@
-const { format, moment, pool, Query, Slack } = require('../config.js');
+const { format, moment, Repository, Slack } = require('../config.js');
+const pool = require('../query-handler.js');
 
 async function get() {
     const sails = {};
-    const sql = Query.IndividualSails.get;
-    await pool.query(sql).then(res => {
-        res.rows.forEach(record => {
+    await pool.query(Repository.IndividualSails.get).then(records => {
+        records.forEach(record => {
             sails[record.airtable_id] = {
                 vessel_conducting_sail: record.vessel_conducting_sail,
                 boarding_date: moment(record.boarding_date, dateFormat).format(dateFormat),
@@ -22,7 +22,7 @@ async function get() {
 
 async function add(records) {
     const sql = {
-        text: Query.IndividualSails.add
+        text: Repository.IndividualSails.add
     };
     for (id of Object.keys(records)) {
         if (id.length != 17 || id.slice(0, 3) != 'rec') {
@@ -51,14 +51,14 @@ async function update(records) {
         var queryString = '';
         for (column of Object.keys(record)) { queryString += `${column} = '${record[column]}', `; }
         queryString += `modified_date_utc = timezone('utc', now())`;
-        const sql = format(Query.IndividualSails.update, queryString, id);
+        const sql = format(Repository.IndividualSails.update, queryString, id);
         await pool.query(sql).then(Slack.post(`updating individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }
 }
 
 async function remove(records) {
     const sql = {
-        text: Query.IndividualSails.remove,
+        text: Repository.IndividualSails.remove,
         values: [records]
     };
     await pool.query(sql).then(Slack.post(`removing individual sails ${JSON.stringify(records)}`)).catch(err => Slack.post(err));

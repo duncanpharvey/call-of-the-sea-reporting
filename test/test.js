@@ -6,6 +6,7 @@ const { Airtable, Database } = require('../services');
 
 const { assert } = require('chai');
 const sinon = require('sinon');
+const { Repository } = require('../services/database/config.js');
 
 describe('App Start', () => {
     beforeEach(() => {
@@ -105,6 +106,38 @@ describe('Airtable', () => {
                 rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0 },
                 rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550 }
             });
+        });
+    });
+});
+
+describe('Database', () => {
+    var handler;
+
+    beforeEach(() => {
+        handler = sinon.stub(Database.QueryHandler);
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    describe('Capacity', () => {
+        it('should get', async function () {
+            handler.get.withArgs().resolves([
+                { id: 0, day: 'sunday', value: 0 },
+                { id: 1, day: 'monday', value: 2 }
+            ]);
+
+            assert.deepEqual(await Database.Capacity.get(), {
+                0: { day: 'sunday', value: 0 },
+                1: { day: 'monday', value: 2 }
+            });
+        });
+
+        it('should add', async function () {
+            await Database.Capacity.add({ 2: { day: 'tuesday', value: 2 } });
+            const values = [id, record.day, record.value];
+            sinon.assert.calledWith(handler.query, Repository.Capacity.add, values);
         });
     });
 });

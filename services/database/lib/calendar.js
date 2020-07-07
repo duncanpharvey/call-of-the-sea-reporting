@@ -1,8 +1,7 @@
-const { pool, Query, Slack } = require('../config.js');
+const { pool, Repository, Slack } = require('../config.js');
 
 async function update() {
-    const sql = Query.Calendar.update;
-    await pool.query(sql).catch(err => Slack.post(err));
+    await pool.query(Repository.Calendar.update).catch(err => Slack.post(err));
 }
 
 module.exports = {

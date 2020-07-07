@@ -5,6 +5,6 @@ module.exports = {
     format: require('pg-format'),
     moment: require('moment'),
     pool: new Pool({ connectionString: process.env.DATABASE_URL }),
-    Query: require('./query'),
+    Repository: require('./repository'),
     Slack: Slack
 };

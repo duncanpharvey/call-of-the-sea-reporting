@@ -1,11 +1,10 @@
-const Config = require('../config.js');
-const airtableDateFormat = Config.airtableDateFormat;
-const moment = Config.moment;
+const { airtableDateFormat, moment, Slack } = require('../config.js');
+const request = require('../request-handler.js');
 
 async function get() {
     const sails = {};
     const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'TotalPassengers', 'Students', 'Adults'];
-    await Config.request('By Boat Sails', fields).then(records => {
+    await request.get('By Boat Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
             var boardingDateTime;
@@ -36,7 +35,7 @@ async function get() {
                 adults: adults ? adults : 0
             }
         });
-    }).catch(err => Config.Slack.post(err));
+    }).catch(err => Slack.post(err));
     return sails;
 }
 

@@ -23,10 +23,10 @@ describe('App Start', () => {
 });
 
 describe('Airtable', () => {
-    var airtableRequest;
+    var airtable;
 
     beforeEach(() => {
-        airtableRequest = sinon.stub(Airtable.Config, 'request');
+        airtable = sinon.stub(Airtable.RequestHandler);
     });
 
     afterEach(() => {
@@ -36,7 +36,7 @@ describe('Airtable', () => {
     describe('Boat Sails', () => {
         it('should get', async function () {
             const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'TotalPassengers', 'Students', 'Adults'];
-            airtableRequest.withArgs('By Boat Sails', fields).resolves(
+            airtable.get.withArgs('By Boat Sails', fields).resolves(
                 [
                     {
                         id: 'rec12345678900000',
@@ -61,7 +61,7 @@ describe('Airtable', () => {
     describe('Capacity', () => {
         it('should get', async function () {
             const fields = ['Id', 'Day', 'Value'];
-            airtableRequest.withArgs('Capacity', fields).resolves(
+            airtable.get.withArgs('Capacity', fields).resolves(
                 [
                     {
                         id: 'rec12345678900000',
@@ -86,7 +86,7 @@ describe('Airtable', () => {
     describe('Individual Sails', () => {
         it('should get', async function () {
             const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding'];
-            airtableRequest.withArgs('By Individual Sails', fields).resolves(
+            airtable.get.withArgs('By Individual Sails', fields).resolves(
                 [
                     {
                         id: 'rec12345678900000',
@@ -100,7 +100,7 @@ describe('Airtable', () => {
                     }
                 ]
             );
-            
+
             assert.deepEqual(await Airtable.IndividualSails.get(), {
                 rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0 },
                 rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550 }

@@ -1,9 +1,10 @@
-const Config = require('../config.js');
+const { Slack } = require('../config.js');
+const request = require('../request-handler.js');
 
 async function get() {
     const capacity = {};
     const fields = ['Id', 'Day', 'Value'];
-    await Config.request('Capacity', fields).then(records => {
+    await request.get('Capacity', fields).then(records => {
         records.forEach(record => {
             const day = record.fields.Day;
             const value = record.fields.Value;
@@ -12,7 +13,7 @@ async function get() {
                 value: value ? value : 0
             };
         })
-    }).catch(err => Config.Slack.post(err));
+    }).catch(err => Slack.post(err));
     return capacity;
 }
 

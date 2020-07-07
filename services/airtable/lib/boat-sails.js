@@ -1,26 +1,27 @@
-const { airtableDateFormat, base, moment, Slack } = require('../config.js');
+const Config = require('../config.js');
+const airtableDateFormat = Config.airtableDateFormat;
+const moment = Config.moment;
 
 async function get() {
     const sails = {};
-    await base('By Boat Sails').select({
-        fields: ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'TotalPassengers', 'Students', 'Adults']
-    }).all().then(records => {
+    const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'TotalPassengers', 'Students', 'Adults'];
+    await Config.request('By Boat Sails', fields).then(records => {
         records.forEach(record => {
-            const vesselConductingSail = record.get('VesselConductingSail');
-            const status = record.get('Status');
-            const totalCost = record.get('TotalCost');
-            const scholarshipAwarded = record.get('ScholarshipAwarded');
-            const paid = record.get('Paid');
-            const outstanding = record.get('Outstanding');
-            const totalPassengers = record.get('TotalPassengers');
-            const students = record.get('Students');
-            const adults = record.get('Adults');
-            var boardingDateTime = null;
-            try { boardingDateTime = moment(`${record.get('BoardingDate')} ${record.get('BoardingTime')}`, airtableDateFormat).format(dateFormat); }
+            const vesselConductingSail = record.fields.VesselConductingSail;
+            var boardingDateTime;
+            try { boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat).format(dateFormat); }
             catch { boardingDateTime = null; }
             var disembarkingDateTime;
-            try { disembarkingDateTime = moment(`${record.get('DisembarkingDate')} ${record.get('DisembarkingTime')}`, airtableDateFormat).format(dateFormat); }
+            try { disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat).format(dateFormat); }
             catch { disembarkingDateTime = null; }
+            const status = record.fields.Status;
+            const totalCost = record.fields.TotalCost;
+            const scholarshipAwarded = record.fields.ScholarshipAwarded;
+            const paid = record.fields.Paid;
+            const outstanding = record.fields.Outstanding;
+            const totalPassengers = record.fields.TotalPassengers;
+            const students = record.fields.Students;
+            const adults = record.fields.Adults;
             sails[record.id] = {
                 vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
                 boarding_date: boardingDateTime,
@@ -35,7 +36,7 @@ async function get() {
                 adults: adults ? adults : 0
             }
         });
-    }).catch(err => Slack.post(err));
+    }).catch(err => Config.Slack.post(err));
     return sails;
 }
 

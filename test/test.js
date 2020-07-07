@@ -4,6 +4,7 @@ const app = require('../app.js');
 const { SyncDatabase } = require('../tasks');
 const { Airtable, Database } = require('../services');
 
+const { assert } = require('chai');
 const sinon = require('sinon');
 
 describe('App Start', () => {
@@ -21,8 +22,95 @@ describe('App Start', () => {
     });
 });
 
+describe('Airtable', () => {
+    var airtableRequest;
+
+    beforeEach(() => {
+        airtableRequest = sinon.stub(Airtable.Config, 'request');
+    });
+
+    afterEach(() => {
+        sinon.restore();
+    });
+
+    describe('Boat Sails', () => {
+        it('should get', async function () {
+            const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'TotalPassengers', 'Students', 'Adults'];
+            airtableRequest.withArgs('By Boat Sails', fields).resolves(
+                [
+                    {
+                        id: 'rec12345678900000',
+                        fields: { VesselConductingSail: 'seaward', BoardingDate: '2020-01-01 09:00:00', DisembarkingDate: '2020-01-01 12:00:00', Status: 'scheduled', TotalCost: 1550, ScholarshipAwarded: 0, Paid: 1550, Outstanding: 0, TotalPassengers: 40, Students: 34, Adults: 6 },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    },
+                    {
+                        id: 'rec12345678900001',
+                        fields: { VesselConductingSail: 'matthew turner', BoardingDate: '2020-01-02 13:00:00', DisembarkingDate: '2020-01-02 16:00:00', Status: 'scheduled', TotalCost: 3100, ScholarshipAwarded: 1550, Paid: 0, Outstanding: 1550, TotalPassengers: 70, Students: 60, Adults: 10 },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    }
+                ]
+            );
+
+            assert.deepEqual(await Airtable.BoatSails.get(), {
+                rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0, total_passengers: 40, students: 34, adults: 6 },
+                rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550, total_passengers: 70, students: 60, adults: 10 }
+            });
+        });
+    });
+
+    describe('Capacity', () => {
+        it('should get', async function () {
+            const fields = ['Id', 'Day', 'Value'];
+            airtableRequest.withArgs('Capacity', fields).resolves(
+                [
+                    {
+                        id: 'rec12345678900000',
+                        fields: { Id: 0, Value: 0, Day: 'Sunday' },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    },
+                    {
+                        id: 'rec12345678900001',
+                        fields: { Id: 1, Value: 2, Day: 'Monday' },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    }
+                ]
+            );
+
+            assert.deepEqual(await Airtable.Capacity.get(), {
+                0: { day: 'sunday', value: 0 },
+                1: { day: 'monday', value: 2 }
+            });
+        });
+    });
+
+    describe('Individual Sails', () => {
+        it('should get', async function () {
+            const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding'];
+            airtableRequest.withArgs('By Individual Sails', fields).resolves(
+                [
+                    {
+                        id: 'rec12345678900000',
+                        fields: { VesselConductingSail: 'seaward', BoardingDate: '2020-01-01 09:00:00', DisembarkingDate: '2020-01-01 12:00:00', Status: 'scheduled', TotalCost: 1550, ScholarshipAwarded: 0, Paid: 1550, Outstanding: 0 },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    },
+                    {
+                        id: 'rec12345678900001',
+                        fields: { VesselConductingSail: 'matthew turner', BoardingDate: '2020-01-02 13:00:00', DisembarkingDate: '2020-01-02 16:00:00', Status: 'scheduled', TotalCost: 3100, ScholarshipAwarded: 1550, Paid: 0, Outstanding: 1550 },
+                        createdTime: '2020-01-01T00:00:00.000Z'
+                    }
+                ]
+            );
+            
+            assert.deepEqual(await Airtable.IndividualSails.get(), {
+                rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0 },
+                rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550 }
+            });
+        });
+    });
+});
+
 describe('Sync Database', () => {
-    var dbBoatSails, dbCalendar, dbCapacity, dbIndividualSails;
+    var dbBoatSails, dbCapacity, dbIndividualSails;
     var airtableCapacity, airtableBoatSails, airtableIndividualSails;
 
     const defaultBoatSails = {
@@ -45,8 +133,8 @@ describe('Sync Database', () => {
         airtableCapacity = sinon.stub(Airtable.Capacity);
         airtableIndividualSails = sinon.stub(Airtable.IndividualSails);
 
+        sinon.stub(Database.Calendar);
         dbBoatSails = sinon.stub(Database.BoatSails);
-        dbCalendar = sinon.stub(Database.Calendar);
         dbCapacity = sinon.stub(Database.Capacity);
         dbIndividualSails = sinon.stub(Database.IndividualSails);
 
@@ -65,15 +153,6 @@ describe('Sync Database', () => {
     });
 
     describe('Boat Sails', () => {
-        it('should get', async function () {
-            await SyncDatabase.main();
-            sinon.assert.calledOnce(Airtable.BoatSails.get);
-            sinon.assert.calledOnce(Database.BoatSails.get);
-            sinon.assert.notCalled(Database.BoatSails.add);
-            sinon.assert.notCalled(Database.BoatSails.update);
-            sinon.assert.notCalled(Database.BoatSails.remove);
-        });
-
         it('should add', async function () {
             airtableBoatSails.get.resolves({
                 rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0, total_passengers: 40, students: 34, adults: 6 },
@@ -125,15 +204,6 @@ describe('Sync Database', () => {
     });
 
     describe('Capacity', () => {
-        it('should get', async function () {
-            await SyncDatabase.main();
-            sinon.assert.calledOnce(Airtable.Capacity.get);
-            sinon.assert.calledOnce(Database.Capacity.get);
-            sinon.assert.notCalled(Database.Capacity.add);
-            sinon.assert.notCalled(Database.Capacity.update);
-            sinon.assert.notCalled(Database.Capacity.remove);
-        });
-
         it('should add', async function () {
             airtableCapacity.get.resolves({
                 0: { day: 'sunday', value: 0 },
@@ -175,15 +245,6 @@ describe('Sync Database', () => {
     });
 
     describe('Individual Sails', () => {
-        it('should get', async function () {
-            await SyncDatabase.main();
-            sinon.assert.calledOnce(Airtable.IndividualSails.get);
-            sinon.assert.calledOnce(Database.IndividualSails.get);
-            sinon.assert.notCalled(Database.IndividualSails.add);
-            sinon.assert.notCalled(Database.IndividualSails.update);
-            sinon.assert.notCalled(Database.IndividualSails.remove);
-        });
-
         it('should add', async function () {
             airtableIndividualSails.get.resolves({
                 rec12345678901000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0 },

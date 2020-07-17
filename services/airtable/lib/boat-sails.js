@@ -7,12 +7,8 @@ async function get() {
     await request.get('By Boat Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
-            var boardingDateTime;
-            try { boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat).format(dateFormat); }
-            catch { boardingDateTime = null; }
-            var disembarkingDateTime;
-            try { disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat).format(dateFormat); }
-            catch { disembarkingDateTime = null; }
+            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat);
+            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
             const status = record.fields.Status;
             const totalCost = record.fields.TotalCost;
             const scholarshipAwarded = record.fields.ScholarshipAwarded;
@@ -23,8 +19,8 @@ async function get() {
             const adults = record.fields.Adults;
             sails[record.id] = {
                 vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
-                boarding_date: boardingDateTime,
-                disembarking_date: disembarkingDateTime,
+                boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
+                disembarking_date: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
                 status: status ? status.toLowerCase() : 'scheduled',
                 total_cost: totalCost ? totalCost : 0,
                 scholarship_awarded: scholarshipAwarded ? scholarshipAwarded : 0,

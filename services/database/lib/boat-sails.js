@@ -5,10 +5,12 @@ async function get() {
     const sql = Query.BoatSails.get;
     await pool.query(sql).then(res => {
         res.rows.forEach(record => {
+            const boardingDateTime = moment(record.boarding_date, dateFormat);
+            const disembarkingDateTime = moment(record.disembarking_date, dateFormat);
             sails[record.airtable_id] = {
                 vessel_conducting_sail: record.vessel_conducting_sail,
-                boarding_date: moment(record.boarding_date, dateFormat).format(dateFormat),
-                disembarking_date: moment(record.disembarking_date, dateFormat).format(dateFormat),
+                boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
+                disembarking_date: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
                 status: record.status,
                 total_cost: record.total_cost,
                 scholarship_awarded: record.scholarship_awarded,

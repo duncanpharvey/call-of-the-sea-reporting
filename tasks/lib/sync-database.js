@@ -24,7 +24,7 @@ async function syncBoatSails() {
     
     if (Object.keys(recordsToAdd).length > 0) await Database.BoatSails.add(recordsToAdd);
     if (Object.keys(recordsToUpdate).length > 0) await Database.BoatSails.update(recordsToUpdate);
-    if (Object.keys(recordsToRemove).length > 0) await Database.BoatSails.remove(recordsToRemove);
+    if (recordsToRemove.length > 0) await Database.BoatSails.remove(recordsToRemove);
 }
 
 async function syncIndividualSails() {
@@ -37,7 +37,7 @@ async function syncIndividualSails() {
     
     if (Object.keys(recordsToAdd).length > 0) await Database.IndividualSails.add(recordsToAdd);
     if (Object.keys(recordsToUpdate).length > 0) await Database.IndividualSails.update(recordsToUpdate);
-    if (Object.keys(recordsToRemove).length > 0) await Database.IndividualSails.remove(recordsToRemove);
+    if (recordsToRemove.length > 0) await Database.IndividualSails.remove(recordsToRemove);
 }
 
 async function main() {

@@ -1,4 +1,4 @@
-const { axios } = require('../config.js');
+const { axios, eventbriteDateFormat, moment } = require('../config.js');
 
 async function get(checkPast = false) {
     const req = {
@@ -8,7 +8,8 @@ async function get(checkPast = false) {
         params: { status: 'live,started,ended,completed' } // exclude draft and cancelled events
     }
 
-    if (!checkPast) { req.params.time_filter = 'current_future' } // only future events
+    if (checkPast) { req.params.time_filter = 'all'; }
+    else { req.params.time_filter = 'current_future'; } // only future events
 
     var events = [];
     var morePages = false;
@@ -21,6 +22,7 @@ async function get(checkPast = false) {
     }
     while (morePages);
 
+    events = events.filter(event => moment(event.start.utc, eventbriteDateFormat).isAfter('2020-05-01T00:00:00Z')); // filter by specific date (first Eventbrite event in Airtable is in May 2020)
     return events;
 }
 

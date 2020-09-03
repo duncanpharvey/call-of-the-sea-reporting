@@ -19,6 +19,10 @@ async function get(event, attendeeDictionary) {
     while (morePages);
 
     attendees.forEach(attendee => {
+        const status = attendee.status;
+        if (status == 'Deleted') { eventbriteStatus = 'deleted' }
+        else if (attendee.cancelled) { eventbriteStatus = 'cancelled' }
+        else { eventbriteStatus = status }
         const email = attendee.profile.email;
         const dayPhone = attendee.profile.cell_phone;
         const eventTitle = event.name.text;
@@ -31,6 +35,7 @@ async function get(event, attendeeDictionary) {
         const totalCost = attendee.costs.gross.major_value;
         const paid = attendee.costs.gross.major_value; // todo: figure out if should set conditionally based on payment type
         attendeeDictionary[attendee.id] = {
+            eventbrite_status: eventbriteStatus ? eventbriteStatus.toLowerCase() : 'scheduled',
             email: email ? email : null,
             dayphone: dayPhone ? dayPhone : null,
             event_title: eventTitle ? eventTitle : null,

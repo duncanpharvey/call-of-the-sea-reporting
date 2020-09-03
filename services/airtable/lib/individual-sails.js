@@ -29,11 +29,13 @@ async function get() {
     return sails;
 }
 
-async function getEventbrite() {
+async function getEventbrite(date) {
     const sails = {};
-    const fields = ['Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
-    await request.get('By Individual Sails', fields).then(records => {
+    const fields = ['EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
+    const formula = "NOT({EventbriteAttendeeId} = '')";
+    await request.get('By Individual Sails', fields, formula).then(records => {
         records.forEach(record => {
+            const eventbriteStatus = record.fields.EventbriteStatus;
             const email = record.fields.Email;
             const dayPhone = record.fields.DayPhone;
             const eventTitle = record.fields.EventTitle;
@@ -46,6 +48,7 @@ async function getEventbrite() {
             const totalCost = record.fields.TotalCost;
             const paid = record.fields.Paid;
             sails[record.fields.EventbriteAttendeeId] = {
+                eventbrite_status: eventbriteStatus ? eventbriteStatus.toLowerCase() : 'scheduled',
                 email: email ? email : null,
                 dayphone: dayPhone ? dayPhone : null,
                 event_title: eventTitle ? eventTitle : null,

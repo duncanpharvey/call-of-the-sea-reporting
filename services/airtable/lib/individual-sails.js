@@ -29,6 +29,41 @@ async function get() {
     return sails;
 }
 
+async function getEventbrite() {
+    const sails = {};
+    const fields = ['Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
+    await request.get('By Individual Sails', fields).then(records => {
+        records.forEach(record => {
+            const email = record.fields.Email;
+            const dayPhone = record.fields.DayPhone;
+            const eventTitle = record.fields.EventTitle;
+            const participantName = record.fields.ParticipantName;
+            const orderId = record.fields.EventbriteOrderId;
+            const eventId = record.fields.EventbriteEventId;
+            const vesselConductingSail = record.fields.VesselConductingSail;
+            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat);
+            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
+            const totalCost = record.fields.TotalCost;
+            const paid = record.fields.Paid;
+            sails[record.fields.EventbriteAttendeeId] = {
+                email: email ? email : null,
+                dayphone: dayPhone ? dayPhone : null,
+                event_title: eventTitle ? eventTitle : null,
+                participant_name: participantName ? participantName : null,
+                order_id: orderId ? orderId : null,
+                event_id: eventId ? eventId : null,
+                vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
+                boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
+                disembarking_date: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
+                total_cost: totalCost ? totalCost : 0,
+                paid: paid ? paid : 0
+            }
+        });
+    }).catch(err => Slack.post(err));
+    return sails;
+}
+
 module.exports = {
-    get: get
+    get: get,
+    getEventbrite: getEventbrite
 };

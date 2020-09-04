@@ -17,7 +17,7 @@ async function syncEventbrite() {
 
     Airtable.IndividualSails.add(recordsToAdd);
     Airtable.IndividualSails.update(recordsToUpdate, map);
-    // Airtable.IndividualSails.cancel(recordsToRemove, map);
+    Airtable.IndividualSails.cancel(recordsToRemove, map);
 }
 
 async function main() {

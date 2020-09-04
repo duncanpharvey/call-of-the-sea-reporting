@@ -1,7 +1,7 @@
 process.env.NODE_ENV = 'test';
 
 const app = require('../app.js');
-const { SyncDatabase } = require('../tasks');
+const { SyncDatabase, SyncAirtable } = require('../tasks');
 const { Airtable, Database } = require('../services');
 
 const { assert } = require('chai');
@@ -9,6 +9,7 @@ const sinon = require('sinon');
 
 describe('App Start', () => {
     beforeEach(() => {
+        sinon.stub(SyncAirtable);
         sinon.stub(SyncDatabase);
     });
 

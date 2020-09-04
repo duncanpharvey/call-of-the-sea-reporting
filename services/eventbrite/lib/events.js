@@ -5,11 +5,11 @@ async function get(checkPast = false) {
         method: 'get',
         url: `https://www.eventbriteapi.com/v3/organizations/${process.env.eventbrite_organization_id}/events`,
         headers: { Authorization: `Bearer ${process.env.eventbrite_token}` },
-        params: { status: 'live,started,ended,completed' } // exclude draft and cancelled events
+        params: { status: 'live,started,ended,completed,canceled' } // exclude draft events
     }
 
     if (checkPast) { req.params.time_filter = 'all'; }
-    else { req.params.time_filter = 'current_future'; } // only future events
+    else { req.params.time_filter = 'current_future'; }
 
     var events = [];
     var morePages = false;

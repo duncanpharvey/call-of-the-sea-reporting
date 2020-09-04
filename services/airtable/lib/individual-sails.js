@@ -31,10 +31,13 @@ async function get() {
 
 async function getEventbrite(date) {
     const sails = {};
-    const fields = ['EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
+    const map = {};
+    const fields = ['Status', 'EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
     const formula = "NOT({EventbriteAttendeeId} = '')";
     await request.get('By Individual Sails', fields, formula).then(records => {
         records.forEach(record => {
+            const airtableId = record.id;
+            const status = record.fields.Status;
             const eventbriteStatus = record.fields.EventbriteStatus;
             const email = record.fields.Email;
             const dayPhone = record.fields.DayPhone;
@@ -47,26 +50,129 @@ async function getEventbrite(date) {
             const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
             const totalCost = record.fields.TotalCost;
             const paid = record.fields.Paid;
+            // fields named to match Airtable since object is used to directly update Airtable fields
             sails[record.fields.EventbriteAttendeeId] = {
-                eventbrite_status: eventbriteStatus ? eventbriteStatus.toLowerCase() : 'scheduled',
-                email: email ? email : null,
-                dayphone: dayPhone ? dayPhone : null,
-                event_title: eventTitle ? eventTitle : null,
-                participant_name: participantName ? participantName : null,
-                order_id: orderId ? orderId : null,
-                event_id: eventId ? eventId : null,
-                vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
-                boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
-                disembarking_date: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
-                total_cost: totalCost ? totalCost : 0,
-                paid: paid ? paid : 0
+                Status: status == 'Cancelled' ? 'Cancelled' : 'Booked',
+                // EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
+                Email: email ? email : null,
+                DayPhone: dayPhone ? dayPhone : null,
+                EventTitle: eventTitle ? eventTitle : null,
+                ParticipantName: participantName ? participantName : null,
+                EventbriteOrderId: orderId ? orderId : null,
+                EventbriteEventId: eventId ? eventId : null,
+                // VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+                BoardingDate: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
+                DisembarkingDate: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
+                // TotalCost: totalCost ? totalCost : 0,
+                // Paid: paid ? paid : 0
             }
+            map[record.fields.EventbriteAttendeeId] = {
+                airtable_id: airtableId,
+                status: status
+            };
         });
     }).catch(err => Slack.post(err));
-    return sails;
+    return [sails, map];
+}
+
+async function add(records) {
+    var addRequest = [];
+    for (const id of Object.keys(records)) {
+        const record = records[id];
+        const sail = {
+            fields: {
+                EventbriteAttendeeId: id
+            }
+        };
+        for (const field of Object.keys(record)) {
+            var value = record[field];
+            if (field == 'Status' && value == 'Cancelled') {
+                sail.fields['CancellationReason'] = 'Cancelled in Eventbrite, Airtable record updated via script';
+            }
+            sail.fields[field] = value;
+        }
+        addRequest.push(sail);
+    }
+    // console.log(addRequest);
+    // request.add('By Individual Sails', addRequest).catch(err => Slack.post(err));
+}
+
+async function update(records, map) {
+    var updateRequest = [];
+    for (const id of Object.keys(records)) {
+        const record = records[id];
+        const sail = {
+            id: map[id].airtable_id,
+            fields: {}
+        };
+        for (const field of Object.keys(record)) {
+            var value = record[field];
+            if (field == 'Status' && value == 'Cancelled') {
+                sail.fields['CancellationReason'] = 'Cancelled in Eventbrite, Airtable record updated via script';
+            }
+            else if (field == 'Status' && value != 'Cancelled') {
+                sail.fields['CancellationReason'] = null;
+            }
+            sail.fields[field] = value;
+        }
+        updateRequest.push(sail);
+    }
+    // console.log(updateRequest);
+    // request.update('By Individual Sails', updateRequest).catch(err => Slack.post(err));
+}
+
+async function cancel(records, map) {
+    var cancelRequest = [];
+    for (const id of records) {
+        const record = map[id];
+        if (record.status == 'Cancelled') { continue; }
+        const sail = {
+            id: record.airtable_id,
+            fields: {
+                CancellationReason: 'Unable to locate in Eventbrite, Airtable record updated via script',
+                EventbriteStatus: 'Unable to locate in Eventbrite',
+                Status: 'Cancelled'
+            }
+        };
+        cancelRequest.push(sail);
+    }
+    console.log(cancelRequest);
+    // request.update('By Individual Sails', cancelRequest).catch(err => Slack.post(err));
+}
+
+function report(airtableAttendees, eventbriteAttendees, map, recordsToUpdate, recordsToAdd) {
+    for (const id of recordsToUpdate) {
+        var line = map[id].airtable_id;
+        const airtableRecord = airtableAttendees[id];
+        for (const field of Object.keys(airtableRecord)) {
+            line += ';' + airtableRecord[field];
+        }
+
+        line += ';;' + id;
+        const eventbriteRecord = eventbriteAttendees[id];
+        for (const field of Object.keys(eventbriteRecord)) {
+            line += ';' + eventbriteRecord[field];
+        }
+
+        // console.log(line);
+    }
+
+    for (const id of recordsToAdd) {
+        var line = id;
+        const eventbriteRecord = eventbriteAttendees[id];
+        for (const field of Object.keys(eventbriteRecord)) {
+            line += ';' + eventbriteRecord[field];
+        }
+
+        console.log(line);
+    }
 }
 
 module.exports = {
+    add: add,
+    cancel: cancel,
     get: get,
-    getEventbrite: getEventbrite
+    getEventbrite: getEventbrite,
+    report: report,
+    update: update
 };

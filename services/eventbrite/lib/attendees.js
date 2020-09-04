@@ -20,8 +20,9 @@ async function get(event, attendeeDictionary) {
 
     attendees.forEach(attendee => {
         const status = attendee.status;
-        if (status == 'Deleted') { eventbriteStatus = 'deleted' }
-        else if (attendee.cancelled) { eventbriteStatus = 'cancelled' }
+        var eventbriteStatus;
+        if (status == 'Deleted') { eventbriteStatus = 'Deleted' }
+        else if (attendee.cancelled) { eventbriteStatus = 'Cancelled' }
         else { eventbriteStatus = status }
         const email = attendee.profile.email;
         const dayPhone = attendee.profile.cell_phone;
@@ -35,18 +36,20 @@ async function get(event, attendeeDictionary) {
         const totalCost = attendee.costs.gross.major_value;
         const paid = attendee.costs.gross.major_value; // todo: figure out if should set conditionally based on payment type
         attendeeDictionary[attendee.id] = {
-            eventbrite_status: eventbriteStatus ? eventbriteStatus.toLowerCase() : 'scheduled',
-            email: email ? email : null,
-            dayphone: dayPhone ? dayPhone : null,
-            event_title: eventTitle ? eventTitle : null,
-            participant_name: participantName ? participantName : null,
-            order_id: orderId ? orderId : null,
-            event_id: eventId ? eventId : null,
-            vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
-            boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
-            disembarking_date: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
-            total_cost: totalCost ? parseInt(totalCost) : 0,
-            paid: paid ? parseInt(paid) : 0
+            Status: eventbriteStatus == 'Deleted' || eventbriteStatus == 'Cancelled' ? 'Cancelled' : 'Booked',
+            // EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
+            Email: email ? email : null,
+            DayPhone: dayPhone ? dayPhone : null,
+            EventTitle: eventTitle ? eventTitle : null,
+            ParticipantName: participantName ? participantName : null,
+            EventbriteOrderId: orderId ? orderId : null,
+            EventbriteEventId: eventId ? eventId : null,
+            // VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+            BoardingDate: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
+            DisembarkingDate: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
+            // TotalCost: totalCost ? parseInt(totalCost) : 0,
+            // Paid: paid ? parseInt(paid) : 0
+            // Quantity of tickets
         }
     });
 

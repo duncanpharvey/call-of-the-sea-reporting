@@ -1,5 +1,5 @@
 const { Airtable, Eventbrite } = require('../../services');
-const { addedDiff, deletedDiff, updatedDiff } = require('deep-object-diff');
+const { diff, addedDiff, deletedDiff, updatedDiff } = require('deep-object-diff');
 
 async function syncEventbrite() {
     const events = await Eventbrite.Events.get(true); // includes past events
@@ -7,20 +7,27 @@ async function syncEventbrite() {
 
     for (event of events) { eventbriteAttendees = await Eventbrite.Attendees.get(event, eventbriteAttendees); }
 
-    const airtableAttendees = await Airtable.IndividualSails.getEventbrite();
+    const result = await Airtable.IndividualSails.getEventbrite();
+    const airtableAttendees = result[0];
+    const map = result[1];
 
     const recordsToAdd = addedDiff(airtableAttendees, eventbriteAttendees);
     const recordsToUpdate = updatedDiff(airtableAttendees, eventbriteAttendees);
     const recordsToRemove = Object.keys(deletedDiff(airtableAttendees, eventbriteAttendees));
 
-    console.log(Object.keys(recordsToAdd).length);
-    console.log(Object.keys(recordsToUpdate).length);
-    console.log(recordsToRemove.length); // todo: check for cancelled status
+    console.log('add:        ', Object.keys(recordsToAdd).length);
+    console.log('update:     ', Object.keys(recordsToUpdate).length);
+    console.log('remove:     ', recordsToRemove.length);
 
-    console.log(Object.keys(eventbriteAttendees).length);
-    console.log(Object.keys(airtableAttendees).length);
+    console.log('---------------------')
+    console.log('eventbrite: ', Object.keys(eventbriteAttendees).length);
+    console.log('airtable:   ', Object.keys(airtableAttendees).length);
 
-    // console.log(recordsToAdd);
+    Airtable.IndividualSails.add(recordsToAdd);
+    Airtable.IndividualSails.update(recordsToUpdate, map);
+    Airtable.IndividualSails.cancel(recordsToRemove, map);
+
+    Airtable.IndividualSails.report(airtableAttendees, eventbriteAttendees, map, Object.keys(recordsToUpdate), Object.keys(recordsToAdd));
 }
 
 async function main() {

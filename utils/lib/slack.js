@@ -1,8 +1,8 @@
 var Slack = require('slack-node');
 slack = new Slack();
 
-function post(message) {
-  slack.setWebhook(process.env.slack_postgres_webhook_url);
+function post(message, webhook = process.env.slack_postgres_webhook_url) { // todo: update files that use this to remove default for backwards compatibility
+  slack.setWebhook(webhook);
   if (process.env.NODE_ENV == "test") return;
   console.log(message);
   slack.webhook({

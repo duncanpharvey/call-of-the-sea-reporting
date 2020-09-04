@@ -1,4 +1,17 @@
-const { axios, eventbriteDateFormat, moment } = require('../config.js');
+const { airtableDateFormat, airtableTimeFormat, axios, eventbriteDateFormat, moment } = require('../config.js');
+
+/* 
+    Due to cancellations, these passengers were manually transferred to other sails and should not be cancelled.
+    They will be prevented from being added to Airtable to avoid duplicate counting of revenue in reports
+*/
+const skip = [
+    '1785261371',
+    '1785261373',
+    '1786142737',
+    '1786142739',
+    '1786282361',
+    '1786282363'
+];
 
 async function get(event, attendeeDictionary) {
     const req = {
@@ -19,6 +32,7 @@ async function get(event, attendeeDictionary) {
     while (morePages);
 
     attendees.forEach(attendee => {
+        if (skip.includes(attendee.id)) { return; }
         const status = attendee.status;
         var eventbriteStatus;
         if (status == 'Deleted') { eventbriteStatus = 'Deleted' }
@@ -34,22 +48,25 @@ async function get(event, attendeeDictionary) {
         const boardingDateTime = moment(event.start.local, eventbriteDateFormat);
         const disembarkingDateTime = moment(event.end.local, eventbriteDateFormat);;
         const totalCost = attendee.costs.gross.major_value;
-        const paid = attendee.costs.gross.major_value; // todo: figure out if should set conditionally based on payment type
+        const paid = attendee.costs.gross.major_value;
+        const qtyTickets = attendee.ticket_class_name;
         attendeeDictionary[attendee.id] = {
             Status: eventbriteStatus == 'Deleted' || eventbriteStatus == 'Cancelled' ? 'Cancelled' : 'Booked',
-            // EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
+            EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
             Email: email ? email : null,
             DayPhone: dayPhone ? dayPhone : null,
             EventTitle: eventTitle ? eventTitle : null,
             ParticipantName: participantName ? participantName : null,
             EventbriteOrderId: orderId ? orderId : null,
             EventbriteEventId: eventId ? eventId : null,
-            // VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
-            BoardingDate: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
-            DisembarkingDate: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
-            // TotalCost: totalCost ? parseInt(totalCost) : 0,
-            // Paid: paid ? parseInt(paid) : 0
-            // Quantity of tickets
+            VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+            BoardingDate: boardingDateTime.isValid() ? boardingDateTime.format(airtableDateFormat) : null,
+            BoardingTime: boardingDateTime.isValid() ? boardingDateTime.format(airtableTimeFormat) : null,
+            DisembarkingDate: disembarkingDateTime.isValid() ? disembarkingDateTime.format(airtableDateFormat) : null,
+            DisembarkingTime: disembarkingDateTime.isValid() ? disembarkingDateTime.format(airtableTimeFormat) : null,
+            TotalCost: totalCost ? parseInt(totalCost) : 0,
+            Paid: paid ? parseInt(paid) : 0,
+            QtyTickets: qtyTickets ? qtyTickets : 'General Admission'
         }
     });
 

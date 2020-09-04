@@ -1,4 +1,4 @@
-const { airtableDateFormat, moment, Slack } = require('../config.js');
+const { airtableDateTimeFormat, moment, Slack } = require('../config.js');
 const request = require('../request-handler.js');
 
 async function get() {
@@ -7,8 +7,8 @@ async function get() {
     await request.get('By Individual Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
-            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat);
-            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
+            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateTimeFormat);
+            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateTimeFormat);
             const status = record.fields.Status;
             const totalCost = record.fields.TotalCost;
             const scholarshipAwarded = record.fields.ScholarshipAwarded;
@@ -32,7 +32,7 @@ async function get() {
 async function getEventbrite(date) {
     const sails = {};
     const map = {};
-    const fields = ['Status', 'EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid'];
+    const fields = ['Status', 'EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid', 'QtyTickets'];
     const formula = "NOT({EventbriteAttendeeId} = '')";
     await request.get('By Individual Sails', fields, formula).then(records => {
         records.forEach(record => {
@@ -46,25 +46,31 @@ async function getEventbrite(date) {
             const orderId = record.fields.EventbriteOrderId;
             const eventId = record.fields.EventbriteEventId;
             const vesselConductingSail = record.fields.VesselConductingSail;
-            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat);
-            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
+            const BoardingDate = record.fields.BoardingDate;
+            const BoardingTime = record.fields.BoardingTime;
+            const DisembarkingDate = record.fields.DisembarkingDate;
+            const DisembarkingTime = record.fields.DisembarkingTime;
             const totalCost = record.fields.TotalCost;
             const paid = record.fields.Paid;
+            const qtyTickets = record.fields.QtyTickets;
             // fields named to match Airtable since object is used to directly update Airtable fields
             sails[record.fields.EventbriteAttendeeId] = {
-                Status: status == 'Cancelled' ? 'Cancelled' : 'Booked',
-                // EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
+                Status: status ? status : null,
+                EventbriteStatus: eventbriteStatus ? eventbriteStatus : null,
                 Email: email ? email : null,
                 DayPhone: dayPhone ? dayPhone : null,
                 EventTitle: eventTitle ? eventTitle : null,
                 ParticipantName: participantName ? participantName : null,
                 EventbriteOrderId: orderId ? orderId : null,
                 EventbriteEventId: eventId ? eventId : null,
-                // VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
-                BoardingDate: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
-                DisembarkingDate: disembarkingDateTime.isValid() ? disembarkingDateTime.format(dateFormat) : null,
-                // TotalCost: totalCost ? totalCost : 0,
-                // Paid: paid ? paid : 0
+                VesselConductingSail: vesselConductingSail ? vesselConductingSail : null,
+                BoardingDate: BoardingDate ? BoardingDate : null,
+                BoardingTime: BoardingTime ? BoardingTime : null,
+                DisembarkingDate: DisembarkingDate ? DisembarkingDate : null,
+                DisembarkingTime: DisembarkingTime ? DisembarkingTime : null,
+                TotalCost: Number.isInteger(totalCost) ? totalCost : null,
+                Paid: Number.isInteger(paid) ? paid : null,
+                QtyTickets: qtyTickets ? qtyTickets : null
             }
             map[record.fields.EventbriteAttendeeId] = {
                 airtable_id: airtableId,
@@ -93,32 +99,47 @@ async function add(records) {
         }
         addRequest.push(sail);
     }
-    // console.log(addRequest);
-    // request.add('By Individual Sails', addRequest).catch(err => Slack.post(err));
+    request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
 }
 
 async function update(records, map) {
     var updateRequest = [];
+    const updateableStatuses = ['Booked', 'Cancelled'];
     for (const id of Object.keys(records)) {
         const record = records[id];
+        const airtableRecord = map[id];
         const sail = {
-            id: map[id].airtable_id,
+            id: airtableRecord.airtable_id,
             fields: {}
         };
         for (const field of Object.keys(record)) {
             var value = record[field];
-            if (field == 'Status' && value == 'Cancelled') {
+
+            // don't change paid field since it is manually set after the initial add
+            if (field == 'Paid') { continue; }
+
+            // don't change status if other than booked or cancelled since it was manually set
+            if (field == 'Status' && value != 'Cancelled' && !updateableStatuses.includes(airtableRecord.status)) { continue; }
+
+            // cancel regardless of status if cancelled in Eventbrite
+            else if (field == 'Status' && value == 'Cancelled') {
                 sail.fields['CancellationReason'] = 'Cancelled in Eventbrite, Airtable record updated via script';
             }
-            else if (field == 'Status' && value != 'Cancelled') {
+
+            // only set status if the existing status was set by integration to avoid overwriting manually set statuses in Airtable
+            else if (field == 'Status' && value != 'Cancelled' && (!airtableRecord.status || updateableStatuses.includes(airtableRecord.status))) {
                 sail.fields['CancellationReason'] = null;
             }
+
             sail.fields[field] = value;
         }
-        updateRequest.push(sail);
+        
+        if (Object.keys(sail.fields).length > 0) {
+            updateRequest.push(sail);
+        }
     }
-    // console.log(updateRequest);
-    // request.update('By Individual Sails', updateRequest).catch(err => Slack.post(err));
+    request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+
 }
 
 async function cancel(records, map) {
@@ -136,12 +157,15 @@ async function cancel(records, map) {
         };
         cancelRequest.push(sail);
     }
-    console.log(cancelRequest);
-    // request.update('By Individual Sails', cancelRequest).catch(err => Slack.post(err));
+    request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
 }
 
+// function used during cleanup on 9/3/2020 - 9/4/2020
+/*
 function report(airtableAttendees, eventbriteAttendees, map, recordsToUpdate, recordsToAdd) {
+    const skip = [];
     for (const id of recordsToUpdate) {
+        if (skip.includes(map[id].airtable_id)) { continue; }
         var line = map[id].airtable_id;
         const airtableRecord = airtableAttendees[id];
         for (const field of Object.keys(airtableRecord)) {
@@ -154,7 +178,7 @@ function report(airtableAttendees, eventbriteAttendees, map, recordsToUpdate, re
             line += ';' + eventbriteRecord[field];
         }
 
-        // console.log(line);
+        console.log(line);
     }
 
     for (const id of recordsToAdd) {
@@ -167,12 +191,12 @@ function report(airtableAttendees, eventbriteAttendees, map, recordsToUpdate, re
         console.log(line);
     }
 }
+*/
 
 module.exports = {
     add: add,
     cancel: cancel,
     get: get,
     getEventbrite: getEventbrite,
-    report: report,
     update: update
 };

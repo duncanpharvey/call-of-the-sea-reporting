@@ -1,4 +1,4 @@
-const { airtableDateFormat, moment, Slack } = require('../config.js');
+const { airtableDateTimeFormat, moment, Slack } = require('../config.js');
 const request = require('../request-handler.js');
 
 async function get() {
@@ -7,8 +7,8 @@ async function get() {
     await request.get('By Boat Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
-            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateFormat);
-            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateFormat);
+            const boardingDateTime = moment(`${record.fields.BoardingDate} ${record.fields.BoardingTime}`, airtableDateTimeFormat);
+            const disembarkingDateTime = moment(`${record.fields.DisembarkingDate} ${record.fields.DisembarkingTime}`, airtableDateTimeFormat);
             const status = record.fields.Status;
             const totalCost = record.fields.TotalCost;
             const scholarshipAwarded = record.fields.ScholarshipAwarded;

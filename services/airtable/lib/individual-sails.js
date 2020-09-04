@@ -99,7 +99,7 @@ async function add(records) {
         }
         addRequest.push(sail);
     }
-    request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
 }
 
 async function update(records, map) {
@@ -133,12 +133,13 @@ async function update(records, map) {
 
             sail.fields[field] = value;
         }
-        
+
         if (Object.keys(sail.fields).length > 0) {
             updateRequest.push(sail);
         }
     }
-    request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    Slack.post(`updating attendees report: ${JSON.stringify(updateRequest)}`);
+    // request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
 
 }
 
@@ -157,7 +158,7 @@ async function cancel(records, map) {
         };
         cancelRequest.push(sail);
     }
-    request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees ${id}: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
 }
 
 // function used during cleanup on 9/3/2020 - 9/4/2020

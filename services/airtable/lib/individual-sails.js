@@ -99,7 +99,7 @@ async function add(records) {
         }
         addRequest.push(sail);
     }
-    request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees: ${JSON.stringify(addRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    if (addRequest.length > 0) { request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees: ${JSON.stringify(addRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url)); }
 }
 
 async function update(records, map) {
@@ -138,8 +138,8 @@ async function update(records, map) {
             updateRequest.push(sail);
         }
     }
-    Slack.post(`updating attendees report: ${JSON.stringify(updateRequest)}`);
-    // request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees: ${JSON.stringify(updateRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    if (updateRequest.length > 0) { Slack.post(`updating attendees report: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url); }
+    // if (updateRequest.length > 0) request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
 
 }
 
@@ -158,8 +158,8 @@ async function cancel(records, map) {
         };
         cancelRequest.push(sail);
     }
-    Slack.post(`cancel attendees report: ${JSON.stringify(cancelRequest)}`);
-    // request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees: ${JSON.stringify(cancelRequest)}`, slack_airtable_webhook_url)).catch(err => Slack.post(err, slack_airtable_webhook_url));
+    if (cancelRequest.length > 0) { Slack.post(`cancel attendees report: ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url); }
+    // if (cancelRequest.length > 0) request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees: ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
 }
 
 // function used during cleanup on 9/3/2020 - 9/4/2020

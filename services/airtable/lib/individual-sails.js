@@ -32,7 +32,7 @@ async function get() {
 async function getEventbrite(date) {
     const sails = {};
     const map = {};
-    const fields = ['Status', 'EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid', 'QtyTickets'];
+    const fields = ['Status', 'EventbriteStatus', 'Email', 'DayPhone', 'EventTitle', 'ParticipantName', 'EventbriteAttendeeId', 'EventbriteOrderId', 'EventbriteEventId', 'VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'TotalCost', 'Paid', 'QtyTickets', 'ContactName', 'PassengerCapacityOverride'];
     const formula = "NOT({EventbriteAttendeeId} = '')";
     await request.get('By Individual Sails', fields, formula).then(records => {
         records.forEach(record => {
@@ -53,6 +53,8 @@ async function getEventbrite(date) {
             const totalCost = record.fields.TotalCost;
             const paid = record.fields.Paid;
             const qtyTickets = record.fields.QtyTickets;
+            const contactName = record.fields.ContactName;
+            const passengerCapacityOverride = record.fields.PassengerCapacityOverride
             // fields named to match Airtable since object is used to directly update Airtable fields
             sails[record.fields.EventbriteAttendeeId] = {
                 Status: status ? status : null,
@@ -70,7 +72,9 @@ async function getEventbrite(date) {
                 DisembarkingTime: DisembarkingTime ? DisembarkingTime : null,
                 TotalCost: Number.isInteger(totalCost) ? totalCost : null,
                 Paid: Number.isInteger(paid) ? paid : null,
-                QtyTickets: qtyTickets ? qtyTickets : null
+                QtyTickets: qtyTickets ? qtyTickets : null,
+                ContactName: contactName ? contactName : contactName,
+                PassengerCapacityOverride: passengerCapacityOverride ? passengerCapacityOverride : null
             }
             map[record.fields.EventbriteAttendeeId] = {
                 airtable_id: airtableId,

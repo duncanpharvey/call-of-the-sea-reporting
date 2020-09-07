@@ -50,6 +50,7 @@ async function get(event, attendeeDictionary) {
         const totalCost = attendee.costs.gross.major_value;
         const paid = attendee.costs.gross.major_value;
         const qtyTickets = attendee.ticket_class_name;
+        const capacity = event.capacity;
         attendeeDictionary[attendee.id] = {
             Status: eventbriteStatus == 'Deleted' || eventbriteStatus == 'Cancelled' ? 'Cancelled' : 'Booked',
             EventbriteStatus: eventbriteStatus ? eventbriteStatus : 'Booked',
@@ -66,7 +67,9 @@ async function get(event, attendeeDictionary) {
             DisembarkingTime: disembarkingDateTime.isValid() ? disembarkingDateTime.format(airtableTimeFormat) : null,
             TotalCost: totalCost ? parseInt(totalCost) : 0,
             Paid: paid ? parseInt(paid) : 0,
-            QtyTickets: qtyTickets ? qtyTickets : 'General Admission'
+            QtyTickets: qtyTickets ? qtyTickets : 'General Admission',
+            ContactName: participantName ? participantName : null,
+            PassengerCapacityOverride: capacity ? capacity : null
         }
     });
 

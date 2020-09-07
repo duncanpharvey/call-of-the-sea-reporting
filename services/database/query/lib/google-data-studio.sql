@@ -10,6 +10,7 @@ select cal."date",
 	sum(case
 		when s."type" is null then 0
 		when s."type" = 'boat' then 1
+		when s."passenger_capacity_override" is not null then total_passengers / s."passenger_capacity_override"::decimal
 		when v."name" = 'seaward' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 40 else 12 end::decimal)
 		when v."name" = 'matthew turner' then total_passengers / (case when s.boarding_date::date = s.disembarking_date::date then 70 else 26 end::decimal)
 	end *
@@ -33,12 +34,14 @@ left join (
 			sum(i.outstanding) as outstanding,
 			count(i.airtable_id) as total_passengers,
 			0 as students,
-			0 as adults
+			0 as adults,
+			i.passenger_capacity_override
 		from individual_sails i
-		where i.status != 'cancelled'
+		where i.status != 'cancelled' -- change this field to filter on cancelled status
 		group by i.vessel_conducting_sail,
 			i.boarding_date,
-			i.disembarking_date
+			i.disembarking_date,
+			i.passenger_capacity_override
 			
 		union
 		
@@ -52,9 +55,10 @@ left join (
 			b.outstanding,
 			b.total_passengers,
 			b.students,
-			b.adults
+			b.adults,
+			null as passenger_capacity_override
 		from boat_sails b
-		where b.status != 'cancelled'
+		where b.status != 'cancelled' -- change this field to filter on cancelled status
 	) s on s.boarding_date::date <= cal."date" and cal."date" <= s.disembarking_date::date and v."name" = s.vessel_conducting_sail
 join capacity cap on cap.id = date_part('dow', cal."date")
 group by cal."date", cap.value, v."name"

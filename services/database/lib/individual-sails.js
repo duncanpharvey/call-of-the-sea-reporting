@@ -15,7 +15,8 @@ async function get() {
                 total_cost: record.total_cost,
                 scholarship_awarded: record.scholarship_awarded,
                 paid: record.paid,
-                outstanding: record.outstanding
+                outstanding: record.outstanding,
+                passenger_capacity_override: record.passenger_capacity_override
             }
         });
     }).catch(err => Slack.post(err));
@@ -41,7 +42,8 @@ async function add(records) {
             record.total_cost,
             record.scholarship_awarded,
             record.paid,
-            record.outstanding
+            record.outstanding,
+            record.passenger_capacity_override
         ];
         await pool.query(sql).then(Slack.post(`adding individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }

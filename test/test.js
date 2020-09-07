@@ -86,25 +86,25 @@ describe('Airtable', () => {
 
     describe('Individual Sails', () => {
         it('should get', async function () {
-            const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding'];
+            const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'PassengerCapacityOverride'];
             airtable.get.withArgs('By Individual Sails', fields).resolves(
                 [
                     {
                         id: 'rec12345678900000',
-                        fields: { VesselConductingSail: 'seaward', BoardingDate: '2020-01-01 09:00:00', DisembarkingDate: '2020-01-01 12:00:00', Status: 'scheduled', TotalCost: 1550, ScholarshipAwarded: 0, Paid: 1550, Outstanding: 0 },
+                        fields: { VesselConductingSail: 'seaward', BoardingDate: '2020-01-01 09:00:00', DisembarkingDate: '2020-01-01 12:00:00', Status: 'scheduled', TotalCost: 1550, ScholarshipAwarded: 0, Paid: 1550, Outstanding: 0, PassengerCapacityOverride: 28 },
                         createdTime: '2020-01-01T00:00:00.000Z'
                     },
                     {
                         id: 'rec12345678900001',
-                        fields: { VesselConductingSail: 'matthew turner', BoardingDate: '2020-01-02 13:00:00', DisembarkingDate: '2020-01-02 16:00:00', Status: 'scheduled', TotalCost: 3100, ScholarshipAwarded: 1550, Paid: 0, Outstanding: 1550 },
+                        fields: { VesselConductingSail: 'matthew turner', BoardingDate: '2020-01-02 13:00:00', DisembarkingDate: '2020-01-02 16:00:00', Status: 'scheduled', TotalCost: 3100, ScholarshipAwarded: 1550, Paid: 0, Outstanding: 1550, PassengerCapacityOverride: null },
                         createdTime: '2020-01-01T00:00:00.000Z'
                     }
                 ]
             );
 
             assert.deepEqual(await Airtable.IndividualSails.get(), {
-                rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0 },
-                rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550 }
+                rec12345678900000: { vessel_conducting_sail: 'seaward', boarding_date: '2020-01-01 09:00:00', disembarking_date: '2020-01-01 12:00:00', status: 'scheduled', total_cost: 1550, scholarship_awarded: 0, paid: 1550, outstanding: 0, passenger_capacity_override: 28 },
+                rec12345678900001: { vessel_conducting_sail: 'matthew turner', boarding_date: '2020-01-02 13:00:00', disembarking_date: '2020-01-02 16:00:00', status: 'scheduled', total_cost: 3100, scholarship_awarded: 1550, paid: 0, outstanding: 1550, passenger_capacity_override: null }
             });
         });
     });

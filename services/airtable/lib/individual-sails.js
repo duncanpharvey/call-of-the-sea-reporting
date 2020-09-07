@@ -3,7 +3,7 @@ const request = require('../request-handler.js');
 
 async function get() {
     const sails = {};
-    const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding'];
+    const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'PassengerCapacityOverride'];
     await request.get('By Individual Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
@@ -14,6 +14,7 @@ async function get() {
             const scholarshipAwarded = record.fields.ScholarshipAwarded;
             const paid = record.fields.Paid;
             const outstanding = record.fields.Outstanding;
+            const passengerCapacityOverride = record.fields.PassengerCapacityOverride;
             sails[record.id] = {
                 vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
                 boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
@@ -22,7 +23,8 @@ async function get() {
                 total_cost: totalCost ? totalCost : 0,
                 scholarship_awarded: scholarshipAwarded ? scholarshipAwarded : 0,
                 paid: paid ? paid : 0,
-                outstanding: outstanding ? outstanding : 0
+                outstanding: outstanding ? outstanding : 0,
+                passenger_capacity_override: passengerCapacityOverride ? passengerCapacityOverride : null
             }
         });
     }).catch(err => Slack.post(err));

@@ -144,8 +144,8 @@ async function update(records, map) {
             updateRequest.push(sail);
         }
     }
-    if (updateRequest.length > 0) { Slack.post(`updating attendees report: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url); }
-    // if (updateRequest.length > 0) request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
+    // if (updateRequest.length > 0) { Slack.post(`updating attendees report: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url); }
+    if (updateRequest.length > 0) request.update('By Individual Sails', updateRequest).then(Slack.post(`updating attendees: ${JSON.stringify(updateRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
 
 }
 

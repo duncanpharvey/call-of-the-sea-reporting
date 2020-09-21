@@ -16,7 +16,10 @@ async function get() {
                 scholarship_awarded: record.scholarship_awarded,
                 paid: record.paid,
                 outstanding: record.outstanding,
-                passenger_capacity_override: record.passenger_capacity_override
+                passenger_capacity_override: record.passenger_capacity_override,
+                eventbrite_event_id: record.eventbrite_event_id,
+                eventbrite_order_id: record.eventbrite_order_id,
+                eventbrite_attendee_id: record.eventbrite_attendee_id
             }
         });
     }).catch(err => Slack.post(err));
@@ -43,7 +46,10 @@ async function add(records) {
             record.scholarship_awarded,
             record.paid,
             record.outstanding,
-            record.passenger_capacity_override
+            record.passenger_capacity_override,
+            record.eventbrite_event_id,
+            record.eventbrite_order_id,
+            record.eventbrite_attendee_id
         ];
         await pool.query(sql).then(Slack.post(`adding individual sail ${id}: ${JSON.stringify(record)}`)).catch(err => Slack.post(err));
     }

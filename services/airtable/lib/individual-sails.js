@@ -3,7 +3,7 @@ const request = require('../request-handler.js');
 
 async function get() {
     const sails = {};
-    const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'PassengerCapacityOverride'];
+    const fields = ['VesselConductingSail', 'BoardingDate', 'BoardingTime', 'DisembarkingDate', 'DisembarkingTime', 'Status', 'TotalCost', 'ScholarshipAwarded', 'Paid', 'Outstanding', 'PassengerCapacityOverride', 'EventbriteEventId', 'EventbriteOrderId', 'EventbriteAttendeeId'];
     await request.get('By Individual Sails', fields).then(records => {
         records.forEach(record => {
             const vesselConductingSail = record.fields.VesselConductingSail;
@@ -15,6 +15,9 @@ async function get() {
             const paid = record.fields.Paid;
             const outstanding = record.fields.Outstanding;
             const passengerCapacityOverride = record.fields.PassengerCapacityOverride;
+            const eventbriteEventId = record.fields.EventbriteEventId;
+            const eventbriteOrderId = record.fields.EventbriteOrderId;
+            const eventbriteAttendeeId = record.fields.EventbriteAttendeeId;
             sails[record.id] = {
                 vessel_conducting_sail: vesselConductingSail ? vesselConductingSail.toLowerCase() : null,
                 boarding_date: boardingDateTime.isValid() ? boardingDateTime.format(dateFormat) : null,
@@ -24,7 +27,10 @@ async function get() {
                 scholarship_awarded: scholarshipAwarded ? scholarshipAwarded : 0,
                 paid: paid ? paid : 0,
                 outstanding: outstanding ? outstanding : 0,
-                passenger_capacity_override: passengerCapacityOverride ? passengerCapacityOverride : null
+                passenger_capacity_override: passengerCapacityOverride ? passengerCapacityOverride : null,
+                eventbrite_event_id: eventbriteEventId ? eventbriteEventId : '',
+                eventbrite_order_id: eventbriteOrderId ? eventbriteOrderId : '',
+                eventbrite_attendee_id: eventbriteAttendeeId ? eventbriteAttendeeId : ''
             }
         });
     }).catch(err => Slack.post(err));
@@ -105,6 +111,7 @@ async function add(records) {
         }
         addRequest.push(sail);
     }
+    // if (addRequest.length > 0) { Slack.post(`adding attendees report: ${JSON.stringify(addRequest)}`, process.env.slack_airtable_webhook_url); }
     if (addRequest.length > 0) { request.add('By Individual Sails', addRequest).then(Slack.post(`adding attendees: ${JSON.stringify(addRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url)); }
 }
 

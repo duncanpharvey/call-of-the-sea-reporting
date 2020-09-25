@@ -1,9 +1,15 @@
 const { Airtable, Database} = require('../../services');
 const { addedDiff, deletedDiff, updatedDiff } = require('deep-object-diff');
+const { Slack } = require('../../utils');
 
 async function syncCapacity() {
     const dbCapacity = await Database.Capacity.get();
     const airtableCapacity = await Airtable.Capacity.get();
+
+    if (Object.keys(airtableCapacity).length == 0) {
+        Slack.post('no airtable capacity found', process.env.slack_postgres_webhook_url);
+        return;
+    }
 
     const recordsToAdd = addedDiff(dbCapacity, airtableCapacity);
     const recordsToUpdate = updatedDiff(dbCapacity, airtableCapacity);
@@ -18,6 +24,11 @@ async function syncBoatSails() {
     const dbSails = await Database.BoatSails.get();
     const airtableSails = await Airtable.BoatSails.get();
 
+    if (Object.keys(airtableSails).length == 0) {
+        Slack.post('no airtable boat sails found', process.env.slack_postgres_webhook_url);
+        return;
+    }
+
     const recordsToAdd = addedDiff(dbSails, airtableSails);
     const recordsToUpdate = updatedDiff(dbSails, airtableSails);
     const recordsToRemove = Object.keys(deletedDiff(dbSails, airtableSails));
@@ -30,6 +41,11 @@ async function syncBoatSails() {
 async function syncIndividualSails() {
     const dbSails = await Database.IndividualSails.get();
     const airtableSails = await Airtable.IndividualSails.get();
+    
+    if (Object.keys(airtableSails).length == 0) {
+        Slack.post('no airtable individual sails found', process.env.slack_postgres_webhook_url);
+        return;
+    }
 
     const recordsToAdd = addedDiff(dbSails, airtableSails);
     const recordsToUpdate = updatedDiff(dbSails, airtableSails);

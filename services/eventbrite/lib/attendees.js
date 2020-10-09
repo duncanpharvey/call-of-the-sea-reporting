@@ -47,8 +47,8 @@ async function get(event, attendeeDictionary) {
         const vesselConductingSail = "Matthew Turner"; // todo: create regex to look for vessel name in event title
         const boardingDateTime = moment(event.start.local, eventbriteDateFormat);
         const disembarkingDateTime = moment(event.end.local, eventbriteDateFormat);;
-        const totalCost = attendee.costs.gross.major_value;
-        const paid = attendee.costs.gross.major_value;
+        const totalCost = attendee.costs.base_price.major_value;
+        const paid = attendee.costs.base_price.major_value;
         const qtyTickets = attendee.ticket_class_name;
         const capacity = event.capacity;
         attendeeDictionary[attendee.id] = {

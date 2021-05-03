@@ -171,8 +171,8 @@ async function cancel(records, map) {
         };
         cancelRequest.push(sail);
     }
-    if (cancelRequest.length > 0) { Slack.post(`cancel attendees report: ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url); }
-    // if (cancelRequest.length > 0) request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees: ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
+    // if (cancelRequest.length > 0) { Slack.post(`cancel attendees report (NO UPDATES MADE): ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url); }
+    if (cancelRequest.length > 0) request.update('By Individual Sails', cancelRequest).then(Slack.post(`cancelling attendees: ${JSON.stringify(cancelRequest)}`, process.env.slack_airtable_webhook_url)).catch(err => Slack.post(err, process.env.slack_airtable_webhook_url));
 }
 
 // function used during cleanup on 9/3/2020 - 9/4/2020

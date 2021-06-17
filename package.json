@@ -4,8 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node -r dotenv/config ./bin/scheduled-job.js",
-    "dev": "node -r dotenv/config app.js",
+    "daemon-start": "pm2 start ./bin/scheduled-job.js",
+    "daemon-stop": "pm2 stop ./bin/scheduled-job.js",
+    "dev": "node -r dotenv/config app-dev.js",
     "test": "mocha -r dotenv/config"
   },
   "repository": {
@@ -24,6 +25,7 @@
     "axios": "^0.21.1",
     "deep-object-diff": "^1.1.0",
     "moment": "^2.27.0",
+    "node-cron": "^3.0.0",
     "pg": "^8.2.1",
     "pg-format": "^1.0.4",
     "slack-node": "^0.1.8"

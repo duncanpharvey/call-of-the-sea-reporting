@@ -1,1 +1,0 @@
-worker: node ./bin/scheduled-job.js

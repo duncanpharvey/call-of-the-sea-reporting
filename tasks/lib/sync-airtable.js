@@ -27,8 +27,9 @@ async function syncEventbrite() {
 }
 
 async function main() {
-    Slack.post('syncing eventbrite and airtable', process.env.slack_airtable_webhook_url);
+    Slack.post('beginning eventbrite and airtable sync', process.env.slack_airtable_webhook_url);
     await syncEventbrite();
+    Slack.post('eventbrite and airtable sync complete', process.env.slack_airtable_webhook_url);
 }
 
 exports.main = main;

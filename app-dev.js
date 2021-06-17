@@ -1,9 +1,3 @@
-const tasks = require('./tasks');
+const app = require('./app.js');
 
-async function main() {
-    global.dateFormat = 'YYYY-MM-DD HH:mm:ss';
-    await tasks.SyncAirtable.main();
-    await tasks.SyncDatabase.main();
-}
-
-main();
+app.main();

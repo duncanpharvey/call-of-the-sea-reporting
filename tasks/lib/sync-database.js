@@ -57,11 +57,12 @@ async function syncIndividualSails() {
 }
 
 async function main() {
-    Slack.post('syncing airtable and postgres', process.env.slack_postgres_webhook_url);
+    Slack.post('beginning airtable and postgres sync', process.env.slack_postgres_webhook_url);
     await Database.Calendar.update();
     await syncCapacity();
     await syncBoatSails();
     await syncIndividualSails();
+    Slack.post('airtable and postgres sync complete', process.env.slack_postgres_webhook_url);
 }
 
 exports.main = main;

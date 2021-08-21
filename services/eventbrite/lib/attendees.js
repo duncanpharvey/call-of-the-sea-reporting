@@ -17,7 +17,8 @@ async function get(event, attendeeDictionary) {
     const req = {
         method: 'get',
         url: `https://www.eventbriteapi.com/v3/events/${event.id}/attendees`,
-        headers: { Authorization: `Bearer ${process.env.eventbrite_token}` }
+        headers: { Authorization: `Bearer ${process.env.eventbrite_token}` },
+        params: {}
     }
 
     var attendees = [];

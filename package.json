@@ -24,7 +24,7 @@
     "airtable": "^0.11.1",
     "axios": "^0.21.1",
     "deep-object-diff": "^1.1.0",
-    "moment": "^2.27.0",
+    "moment": "^2.29.2",
     "node-cron": "^3.0.0",
     "pg": "^8.6.0",
     "pg-format": "^1.0.4",
